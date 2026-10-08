@@ -1,0 +1,2919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>METAPHYSICA — an instrument for thinking about reality</title>
+<meta name="description" content="An interactive instrument for thinking about being, time, identity, causality and mind.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Spectral:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --void:#0A1216;
+  --void2:#071013;
+  --gold:#D9A441;
+  --bone:#EAE3D2;
+  --teal:#5FD3C4;
+  --verm:#C2543A;
+  --line:rgba(234,227,210,.15);
+  --line-strong:rgba(234,227,210,.3);
+  --dim:rgba(234,227,210,.58);
+  --dimmer:rgba(234,227,210,.38);
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --disp:'Fraunces',Georgia,'Times New Roman',serif;
+  --body:'Spectral',Georgia,serif;
+  --pad:clamp(20px,5vw,96px);
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--void);
+  color:var(--bone);
+  font-family:var(--body);
+  font-size:clamp(16px,1.05vw + 12px,18px);
+  line-height:1.68;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+img,svg,canvas{max-width:100%;display:block}
+button{font:inherit;color:inherit;background:none;border:0}
+input[type=range]{font:inherit}
+::selection{background:var(--gold);color:var(--void)}
+
+/* ============================================================
+   ATMOSPHERE
+   ============================================================ */
+.grain{
+  position:fixed;inset:-50%;
+  width:200%;height:200%;
+  pointer-events:none;
+  z-index:9998;
+  opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grainShift 8s steps(6) infinite;
+}
+@keyframes grainShift{
+  0%{transform:translate(0,0)}
+  20%{transform:translate(-3%,2%)}
+  40%{transform:translate(2%,-3%)}
+  60%{transform:translate(-2%,-2%)}
+  80%{transform:translate(3%,1%)}
+  100%{transform:translate(0,0)}
+}
+.watermark{
+  position:fixed;inset:0;
+  width:100%;height:100%;
+  z-index:0;
+  pointer-events:none;
+  will-change:transform;
+}
+main,header,footer{position:relative;z-index:1}
+
+/* ============================================================
+   CURSOR
+   ============================================================ */
+.cursor{
+  position:fixed;top:0;left:0;
+  width:24px;height:24px;
+  margin:0;
+  border:1px solid var(--gold);
+  border-radius:50%;
+  pointer-events:none;
+  z-index:9999;
+  mix-blend-mode:difference;
+  transition:width .3s var(--ease),height .3s var(--ease),background .3s var(--ease),border-color .3s var(--ease),opacity .3s;
+  opacity:0;
+  will-change:transform;
+}
+body.has-cursor .cursor{opacity:1}
+body.has-cursor,
+body.has-cursor *{cursor:none !important}
+.cursor.grow{
+  width:60px;height:60px;
+  background:rgba(217,164,65,.22);
+  border-color:var(--teal);
+}
+
+/* ============================================================
+   TYPOGRAPHY HELPERS
+   ============================================================ */
+.mono{
+  font-family:var(--mono);
+  font-size:clamp(10px,.72vw + 8px,12px);
+  font-weight:400;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+}
+.label{color:var(--gold);font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;margin:0}
+.rule{height:1px;background:var(--line);border:0;margin:0}
+.mask{display:block;overflow:hidden;padding-bottom:.14em;margin-bottom:-.14em}
+.mask > span{display:block;transform:translateY(112%);transition:transform 1.05s var(--ease)}
+.mask.in > span{transform:translateY(0)}
+.hair{width:100%;height:1px;background:var(--line)}
+
+/* ============================================================
+   SECTION SHELL
+   ============================================================ */
+.sec{
+  padding:clamp(72px,11vw,160px) var(--pad);
+  position:relative;
+  max-width:1560px;
+  margin:0 auto;
+}
+.sec-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:clamp(12px,2vw,22px);
+  margin-bottom:clamp(36px,6vw,80px);
+}
+.sec-title{
+  font-family:var(--disp);
+  font-weight:300;
+  font-optical-sizing:auto;
+  font-size:clamp(34px,6.2vw,86px);
+  line-height:.96;
+  letter-spacing:-.025em;
+  margin:0;
+  max-width:18ch;
+}
+.sec-title em{font-style:italic;font-weight:300;color:var(--gold)}
+.lede{
+  font-size:clamp(17px,1.4vw + 13px,22px);
+  line-height:1.6;
+  max-width:62ch;
+  color:var(--dim);
+  margin:0;
+}
+.lede strong{color:var(--bone);font-weight:400}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+#hero{
+  position:relative;
+  min-height:100svh;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  padding:clamp(28px,5vw,64px) var(--pad) clamp(28px,4vw,52px);
+  overflow:hidden;
+}
+#engine{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  z-index:0;
+  display:block;
+}
+.hero-meta{
+  position:absolute;
+  top:clamp(24px,4vw,52px);
+  left:var(--pad);
+  right:var(--pad);
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  z-index:2;
+  color:var(--dimmer);
+}
+.hero-meta span{white-space:nowrap}
+.hero-inner{position:relative;z-index:2;max-width:1560px;width:100%;margin:0 auto}
+.hero-q{
+  font-family:var(--disp);
+  font-weight:300;
+  font-optical-sizing:auto;
+  font-variation-settings:'opsz' 144;
+  font-size:clamp(52px,12.5vw,190px);
+  line-height:.9;
+  letter-spacing:-.04em;
+  margin:clamp(10px,2vw,20px) 0 0;
+  max-width:12ch;
+}
+.hero-q em{font-style:italic;color:var(--gold)}
+.hero-sub{
+  font-family:var(--body);
+  font-size:clamp(16px,1.1vw + 13px,21px);
+  line-height:1.55;
+  color:var(--dim);
+  max-width:46ch;
+  margin:clamp(18px,2.4vw,30px) 0 0;
+  min-height:3.2em;
+  transition:opacity .35s ease;
+}
+.hero-sub.fade{opacity:0}
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:clamp(24px,3.4vw,42px);
+}
+.chip{
+  position:relative;
+  overflow:hidden;
+  border:1px solid var(--line-strong);
+  border-radius:100px;
+  padding:11px 20px;
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--dim);
+  transition:color .4s var(--ease),border-color .4s var(--ease);
+  isolation:isolate;
+}
+.chip::after{
+  content:'';
+  position:absolute;inset:0;
+  background:var(--gold);
+  transform:translateY(101%);
+  transition:transform .5s var(--ease);
+  z-index:-1;
+}
+.chip:hover,.chip:focus-visible{color:var(--void);border-color:var(--gold);outline:none}
+.chip:hover::after,.chip:focus-visible::after{transform:translateY(0)}
+.chip[aria-pressed="true"]{
+  color:var(--void);
+  border-color:var(--gold);
+  background:var(--gold);
+}
+.chip[aria-pressed="true"]::after{transform:translateY(0);background:var(--gold)}
+.scroll-cue{
+  position:relative;
+  z-index:2;
+  margin:clamp(28px,4vw,54px) auto 0;
+  width:100%;
+  max-width:1560px;
+  color:var(--dimmer);
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.scroll-cue .dotline{
+  flex:1;height:1px;
+  background-image:linear-gradient(to right,var(--line-strong) 0 2px,transparent 2px 8px);
+  background-size:8px 1px;
+}
+
+/* ============================================================
+   §01 MAP
+   ============================================================ */
+.map-wrap{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 380px;
+  gap:clamp(16px,2vw,32px);
+  align-items:start;
+}
+.map-frame{
+  position:relative;
+  border:1px solid var(--line);
+  background:
+    radial-gradient(120% 90% at 30% 10%, rgba(95,211,196,.05), transparent 60%),
+    var(--void2);
+  overflow:hidden;
+}
+.map-viewport{
+  position:relative;
+  height:clamp(380px,58vh,620px);
+  overflow:hidden;
+  touch-action:none;
+  cursor:grab;
+}
+.map-viewport.dragging{cursor:grabbing}
+.map-world{
+  position:absolute;
+  top:0;left:0;
+  width:1200px;height:800px;
+  transform-origin:0 0;
+  will-change:transform;
+}
+.map-edges{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.map-edges line{
+  stroke:rgba(234,227,210,.16);
+  stroke-width:1;
+  transition:stroke .4s ease,stroke-width .4s ease;
+}
+.map-edges line.hot{stroke:var(--gold);stroke-width:1.6}
+.node{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:7px 14px 7px 11px;
+  border:1px solid var(--line-strong);
+  border-radius:100px;
+  background:rgba(7,16,19,.86);
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--dim);
+  white-space:nowrap;
+  transition:color .3s,border-color .3s,background .3s,box-shadow .3s;
+}
+.node .sym{color:var(--gold);font-size:13px;line-height:1}
+.node:hover,.node:focus-visible{
+  color:var(--bone);
+  border-color:var(--gold);
+  outline:none;
+  box-shadow:0 0 0 4px rgba(217,164,65,.09);
+}
+.node.active{
+  color:var(--void);
+  background:var(--gold);
+  border-color:var(--gold);
+}
+.node.active .sym{color:var(--void)}
+.node.active::before{
+  content:'';
+  position:absolute;
+  inset:-1px;
+  border-radius:100px;
+  border:1px solid var(--gold);
+  animation:pulse 1.8s ease-out infinite;
+  pointer-events:none;
+}
+@keyframes pulse{
+  0%{transform:scale(1);opacity:.7}
+  100%{transform:scale(1.5);opacity:0}
+}
+.map-tools{
+  position:absolute;
+  right:12px;bottom:12px;
+  display:flex;
+  gap:6px;
+  z-index:4;
+}
+.map-tools button{
+  width:38px;height:38px;
+  border:1px solid var(--line-strong);
+  border-radius:50%;
+  background:rgba(7,16,19,.9);
+  color:var(--dim);
+  font-family:var(--mono);
+  font-size:15px;
+  line-height:1;
+  display:grid;place-items:center;
+  transition:color .3s,border-color .3s,background .3s;
+}
+.map-tools button:hover,.map-tools button:focus-visible{
+  color:var(--void);background:var(--gold);border-color:var(--gold);outline:none;
+}
+.map-hint{
+  position:absolute;
+  left:14px;top:12px;
+  color:var(--dimmer);
+  pointer-events:none;
+  z-index:4;
+}
+.map-panel{
+  border:1px solid var(--line);
+  background:var(--void2);
+  padding:clamp(20px,2.4vw,30px);
+  min-height:340px;
+  position:relative;
+}
+.map-panel .empty{color:var(--dimmer);font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;line-height:2}
+.map-panel h3{
+  font-family:var(--disp);
+  font-weight:400;
+  font-size:clamp(26px,2.6vw,38px);
+  line-height:1.05;
+  letter-spacing:-.02em;
+  margin:6px 0 14px;
+}
+.map-panel .primer{color:var(--dim);font-size:15.5px;line-height:1.66;margin:0 0 20px}
+.map-panel .thinker{
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--teal);margin:0 0 8px;
+}
+.map-panel blockquote{
+  margin:0;
+  padding-left:16px;
+  border-left:1px solid var(--gold);
+  font-style:italic;
+  font-size:15.5px;
+  color:var(--bone);
+  line-height:1.6;
+}
+.map-panel blockquote cite{
+  display:block;
+  margin-top:8px;
+  font-style:normal;
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--dimmer);
+}
+.map-panel .close{
+  position:absolute;top:10px;right:10px;
+  width:32px;height:32px;border-radius:50%;
+  border:1px solid var(--line);
+  color:var(--dim);
+  display:grid;place-items:center;
+  font-family:var(--mono);font-size:14px;
+  transition:color .3s,border-color .3s,background .3s;
+}
+.map-panel .close:hover,.map-panel .close:focus-visible{color:var(--void);background:var(--gold);border-color:var(--gold);outline:none}
+
+/* ============================================================
+   §02 TIMELINE
+   ============================================================ */
+.tl-layout{
+  display:grid;
+  grid-template-columns:minmax(0,420px) minmax(0,1fr);
+  gap:clamp(28px,5vw,80px);
+  align-items:start;
+}
+.tl-sticky{
+  position:sticky;
+  top:14vh;
+  align-self:start;
+}
+.tl-readout{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  color:var(--dimmer);
+  margin-bottom:20px;
+}
+.tl-track{
+  position:relative;
+  height:64px;
+  touch-action:none;
+  user-select:none;
+}
+.tl-track:focus-visible{outline:none}
+.tl-track:focus-visible .tl-rail{background:var(--line-strong)}
+.tl-rail{
+  position:absolute;
+  left:0;right:0;top:31px;
+  height:1px;
+  background:var(--line);
+}
+.tl-fill{
+  position:absolute;
+  left:0;top:31px;
+  height:1px;
+  background:var(--gold);
+  width:0;
+  transition:width .45s var(--ease);
+}
+.tl-mark{
+  position:absolute;
+  top:26px;
+  width:11px;height:11px;
+  margin-left:-5.5px;
+  border-radius:50%;
+  border:1px solid var(--line-strong);
+  background:var(--void);
+  transition:background .35s,border-color .35s,transform .35s;
+  pointer-events:none;
+}
+.tl-mark.on{
+  background:var(--gold);
+  border-color:var(--gold);
+  transform:scale(1.35);
+}
+.tl-head{
+  position:absolute;
+  top:26px;
+  width:17px;height:17px;
+  margin-left:-8.5px;
+  border-radius:50%;
+  border:1px solid var(--gold);
+  background:var(--void);
+  box-shadow:0 0 14px rgba(217,164,65,.7);
+  transition:left .45s var(--ease);
+  pointer-events:none;
+}
+.tl-head::after{
+  content:'';
+  position:absolute;inset:4px;
+  border-radius:50%;
+  background:var(--gold);
+}
+.tl-eras{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-top:14px;
+  color:var(--dimmer);
+}
+.tl-eras span{transition:color .35s}
+.tl-eras span.on{color:var(--gold)}
+.tl-card{
+  margin-top:34px;
+  border-top:1px solid var(--line);
+  padding-top:22px;
+}
+.tl-card .date{color:var(--teal);font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+.tl-card h3{
+  font-family:var(--disp);
+  font-weight:300;
+  font-size:clamp(26px,3vw,42px);
+  line-height:1.04;
+  letter-spacing:-.02em;
+  margin:10px 0 14px;
+}
+.tl-card p{color:var(--dim);font-size:16px;line-height:1.62;margin:0;max-width:40ch}
+.tl-notes{display:flex;flex-direction:column}
+.tl-note{
+  padding:clamp(30px,4vw,56px) 0;
+  border-bottom:1px solid var(--line);
+  min-height:32vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  transition:opacity .5s ease;
+  opacity:.38;
+}
+.tl-note.on{opacity:1}
+.tl-note .n-date{color:var(--dimmer);font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin:0 0 10px}
+.tl-note h4{
+  font-family:var(--disp);
+  font-weight:400;
+  font-size:clamp(21px,2vw,29px);
+  letter-spacing:-.015em;
+  margin:0 0 12px;
+}
+.tl-note p{color:var(--dim);margin:0;max-width:58ch;font-size:16.5px}
+
+/* ============================================================
+   §03 LAB
+   ============================================================ */
+.exp{
+  border-top:1px solid var(--line);
+  padding:clamp(30px,4.5vw,60px) 0;
+  display:grid;
+  grid-template-columns:minmax(0,340px) minmax(0,1fr);
+  gap:clamp(24px,4vw,64px);
+  align-items:start;
+}
+.exp:last-child{border-bottom:1px solid var(--line)}
+.exp-head .num{color:var(--gold);font-family:var(--mono);font-size:11px;letter-spacing:.2em}
+.exp-head h3{
+  font-family:var(--disp);
+  font-weight:300;
+  font-size:clamp(24px,2.6vw,36px);
+  line-height:1.06;
+  letter-spacing:-.02em;
+  margin:12px 0 14px;
+}
+.exp-head p{color:var(--dim);font-size:15.5px;margin:0 0 12px}
+.exp-head .q{color:var(--teal);font-style:italic}
+.stage{
+  border:1px solid var(--line);
+  background:var(--void2);
+  padding:clamp(18px,2.4vw,30px);
+}
+
+/* --- Ship of Theseus --- */
+.ship-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:clamp(18px,3vw,36px);align-items:center}
+.ship{width:100%;height:auto}
+.plank{transition:fill .45s ease,stroke .45s ease,opacity .45s ease}
+.plank.old{fill:#453a26;stroke:#8d7549;stroke-width:1}
+.plank.new{fill:#12383a;stroke:var(--teal);stroke-width:1}
+.ship-outline{fill:none;stroke:rgba(234,227,210,.4);stroke-width:1.4}
+.mast{stroke:rgba(234,227,210,.5);stroke-width:2}
+.sail{fill:rgba(234,227,210,.07);stroke:rgba(234,227,210,.35);stroke-width:1}
+.ctrl{display:flex;flex-direction:column;gap:10px}
+.ctrl label{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between;gap:10px}
+.ctrl .val{color:var(--gold)}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:26px;background:transparent;
+}
+input[type=range]::-webkit-slider-runnable-track{height:1px;background:var(--line-strong)}
+input[type=range]::-moz-range-track{height:1px;background:var(--line-strong)}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:16px;height:16px;margin-top:-7.5px;
+  border-radius:50%;background:var(--gold);border:0;
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+input[type=range]::-moz-range-thumb{
+  width:16px;height:16px;border-radius:50%;background:var(--gold);border:0;
+}
+input[type=range]:hover::-webkit-slider-thumb,
+input[type=range]:focus-visible::-webkit-slider-thumb{
+  transform:scale(1.3);box-shadow:0 0 0 6px rgba(217,164,65,.16);
+}
+input[type=range]:focus-visible{outline:none}
+.dial{width:100%;max-width:280px;margin:0 auto}
+.dial .needle{transform-origin:150px 96px;transition:transform .35s var(--ease)}
+.dial .arc{fill:none;stroke:var(--line-strong);stroke-width:1}
+.dial .tick{stroke:rgba(234,227,210,.28);stroke-width:1}
+.verdict{margin-top:14px;text-align:center}
+.verdict .v-lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--dimmer)}
+.verdict .v-txt{color:var(--bone);font-style:italic;margin-top:6px;font-size:15px;min-height:2.6em}
+.dial-labels{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dimmer);margin-top:6px}
+.dial-labels span:first-child{color:var(--gold)}
+.dial-labels span:last-child{color:var(--teal);text-align:right}
+
+/* --- Block universe --- */
+.block-wrap{position:relative}
+#blockCanvas{width:100%;height:clamp(260px,36vh,380px);display:block;touch-action:pan-y;border:1px solid var(--line);background:var(--void)}
+.now-grip{
+  position:absolute;left:0;top:0;
+  width:30px;height:100%;
+  touch-action:none;
+  cursor:ns-resize;
+  z-index:3;
+}
+.now-grip::after{
+  content:'';
+  position:absolute;left:10px;top:50%;
+  width:5px;height:44px;
+  transform:translateY(-50%);
+  background:var(--gold);
+  border-radius:3px;
+  box-shadow:0 0 12px rgba(217,164,65,.7);
+  transition:box-shadow .3s;
+}
+.now-grip:focus-visible{outline:none}
+.now-grip:focus-visible::after{box-shadow:0 0 0 6px rgba(217,164,65,.25),0 0 16px rgba(217,164,65,.9)}
+.block-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+.tbtn{
+  position:relative;overflow:hidden;isolation:isolate;
+  border:1px solid var(--line-strong);
+  border-radius:100px;
+  padding:9px 18px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);
+  transition:color .35s,border-color .35s;
+}
+.tbtn::after{content:'';position:absolute;inset:0;background:var(--teal);transform:translateY(101%);transition:transform .45s var(--ease);z-index:-1}
+.tbtn:hover,.tbtn:focus-visible{color:var(--void);border-color:var(--teal);outline:none}
+.tbtn:hover::after,.tbtn:focus-visible::after{transform:translateY(0)}
+.tbtn[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:var(--void)}
+.tbtn[aria-pressed="true"]::after{transform:translateY(0);background:var(--teal)}
+.block-note{color:var(--dim);font-size:15px;margin:16px 0 0;max-width:60ch;min-height:3.2em}
+.block-note b{color:var(--bone);font-weight:400}
+
+/* --- Teleporter --- */
+.tele-stage{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:clamp(10px,2vw,28px);
+  align-items:center;
+  margin-bottom:24px;
+}
+.pod{
+  border:1px solid var(--line);
+  padding:14px;
+  position:relative;
+  min-height:210px;
+}
+.pod-label{color:var(--dimmer);margin-bottom:10px}
+.fig{
+  position:relative;
+  height:150px;
+  display:block;
+}
+.fig i{
+  position:absolute;
+  width:9px;height:9px;
+  border-radius:50%;
+  background:var(--gold);
+  left:calc(var(--x) * 1%);
+  top:calc(var(--y) * 1%);
+  transform:translate(-50%,-50%);
+  transition:opacity .5s ease,transform .7s var(--ease),background .5s ease,box-shadow .5s ease;
+}
+.fig i:nth-child(3n){background:var(--teal)}
+.fig i:nth-child(4n){background:var(--bone);opacity:.7}
+.tele-stage[data-step="1"] .fig.right i{opacity:.28;box-shadow:0 0 0 1px var(--teal)}
+.tele-stage[data-step="1"] .pod.left .scan{opacity:1}
+.pod .scan{
+  position:absolute;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--teal),transparent);
+  opacity:0;
+  animation:scanmove 1.7s linear infinite;
+  pointer-events:none;
+}
+@keyframes scanmove{0%{top:16%}50%{top:82%}100%{top:16%}}
+.tele-stage[data-step="2"] .fig.left i,
+.tele-stage[data-step="3"] .fig.left i{opacity:0;transform:translate(calc(-50% + var(--sx) * 1px), calc(-50% + var(--sy) * 1px)) scale(.4)}
+.tele-stage[data-step="3"] .fig.right i{opacity:1;box-shadow:0 0 12px rgba(95,211,196,.5)}
+.tele-stage[data-step="3"] .fig.right i:nth-child(3n){background:var(--teal)}
+.tele-beam{width:clamp(24px,5vw,70px);height:1px;background:var(--line-strong);position:relative}
+.tele-stage[data-step="1"] .tele-beam,
+.tele-stage[data-step="3"] .tele-beam{background:var(--teal);box-shadow:0 0 14px rgba(95,211,196,.6)}
+.stepper{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.tele-panel{border-top:1px solid var(--line);padding-top:20px}
+.tele-panel h4{
+  font-family:var(--display,var(--disp));
+  font-size:clamp(18px,1.8vw,23px);
+  font-weight:400;
+  margin:0 0 14px;
+  letter-spacing:-.01em;
+}
+.voices{display:grid;gap:14px}
+.voice{display:grid;grid-template-columns:96px minmax(0,1fr);gap:14px;align-items:start}
+.voice .who{color:var(--gold);font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;padding-top:3px}
+.voice p{margin:0;color:var(--dim);font-size:15.5px;line-height:1.6}
+@media(max-width:640px){
+  .voice{grid-template-columns:1fr;gap:4px}
+}
+
+/* ============================================================
+   §04 ORCHARD
+   ============================================================ */
+.orchard{
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
+  gap:clamp(24px,4vw,60px);
+  align-items:start;
+}
+.orchard-svg{width:100%;height:auto;border:1px solid var(--line);background:var(--void2)}
+.orch-canopy{fill:none;stroke:rgba(234,227,210,.18);stroke-dasharray:2 6}
+.orch-trunk{stroke:rgba(234,227,210,.3);stroke-width:9;stroke-linecap:round}
+.orch-branch{stroke:rgba(234,227,210,.22);stroke-width:4;stroke-linecap:round}
+.apple{
+  cursor:pointer;
+  transition:transform .3s var(--ease),opacity .4s ease;
+  transform-origin:center;
+}
+.apple circle.outer{fill:#8f3325;stroke:#C2543A;stroke-width:1.5;transition:fill .45s,stroke .45s}
+.apple circle.core{fill:#D9A441;opacity:0;transition:opacity .4s}
+.orchard-svg[data-mode="aristotle"] .apple circle.outer{fill:#b8402b;stroke:#e0705a}
+.orchard-svg[data-mode="aristotle"] .apple circle.core{opacity:.85}
+.apple:hover circle.outer,.apple:focus-visible circle.outer{stroke:var(--bone);stroke-width:2.5}
+.apple:focus-visible{outline:none}
+.apple.hi circle.outer{stroke:var(--bone);stroke-width:2.5}
+.orchard-svg .form-group{opacity:0;transition:opacity .5s ease}
+.orchard-svg[data-mode="plato"] .form-group{opacity:1}
+.orchard-svg .rays{opacity:0;transition:opacity .5s ease}
+.orchard-svg[data-mode="plato"] .rays{opacity:1}
+.form-ring{fill:none;stroke:var(--gold);stroke-width:1;stroke-dasharray:3 4}
+.form-core{fill:rgba(217,164,65,.22);stroke:var(--gold);stroke-width:1}
+.form-label{fill:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase}
+.ray{stroke:var(--gold);stroke-width:1;stroke-dasharray:2 6;opacity:.55}
+.orch-panel{display:flex;flex-direction:column;gap:20px}
+.orch-props{display:flex;flex-wrap:wrap;gap:10px}
+.orch-copy{color:var(--dim);font-size:15.5px;min-height:6.5em;margin:0}
+.orch-copy b{color:var(--bone);font-weight:400}
+.orch-mode-label{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal)}
+
+/* ============================================================
+   §05 INTERROGATION
+   ============================================================ */
+.interrog{
+  border:1px solid var(--line);
+  background:var(--void2);
+  padding:clamp(22px,3.4vw,48px);
+  max-width:900px;
+}
+.interrog-top{display:flex;justify-content:space-between;gap:14px;color:var(--dimmer);margin-bottom:26px;flex-wrap:wrap}
+.iq{
+  font-family:var(--disp);
+  font-weight:300;
+  font-size:clamp(24px,3.4vw,44px);
+  line-height:1.1;
+  letter-spacing:-.02em;
+  margin:0 0 26px;
+  max-width:22ch;
+}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{
+  text-align:left;
+  border:1px solid var(--line);
+  padding:15px 18px;
+  color:var(--dim);
+  font-size:16px;
+  line-height:1.5;
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  transition:color .35s,border-color .35s,padding-left .35s;
+}
+.opt::after{
+  content:'';position:absolute;inset:0;
+  background:var(--teal);
+  transform:translateY(101%);
+  transition:transform .45s var(--ease);
+  z-index:-1;
+}
+.opt:hover,.opt:focus-visible{color:var(--bone);border-color:var(--teal);padding-left:26px;outline:none}
+.opt:hover::after,.opt:focus-visible::after{transform:translateY(0);opacity:.12}
+.opt[disabled]{opacity:.42}
+.reply{
+  border-left:1px solid var(--gold);
+  padding:4px 0 4px 20px;
+  margin-top:26px;
+  animation:fadeUp .6s var(--ease) both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.reply .who{color:var(--gold);font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;margin:0 0 8px}
+.reply p{margin:0;font-style:italic;color:var(--bone);font-size:17px;line-height:1.6}
+.next{margin-top:26px}
+.fp-title{
+  font-family:var(--disp);
+  font-weight:300;
+  font-size:clamp(30px,5vw,64px);
+  line-height:1;
+  letter-spacing:-.03em;
+  margin:14px 0 18px;
+}
+.fp-title em{font-style:italic;color:var(--gold)}
+.bars{display:grid;gap:12px;margin:26px 0}
+.bar-row{display:grid;grid-template-columns:minmax(0,120px) minmax(0,1fr);gap:16px;align-items:center}
+.bar-row span{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dimmer)}
+.bar{height:1px;background:var(--line-strong);position:relative}
+.bar i{position:absolute;left:50%;top:-3px;width:7px;height:7px;border-radius:50%;background:var(--gold);transition:left .8s var(--ease)}
+.bar i::before{content:'';position:absolute;left:50%;top:2px;width:1px;height:5px;background:var(--gold);transform:translateX(-50%)}
+.fp-copy{color:var(--dim);font-size:16.5px;max-width:62ch;margin:0 0 26px}
+
+/* ============================================================
+   COLOPHON
+   ============================================================ */
+.colophon{
+  padding:clamp(56px,8vw,110px) var(--pad) clamp(48px,6vw,90px);
+  border-top:1px solid var(--line);
+  max-width:1560px;
+  margin:0 auto;
+}
+.colo-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:clamp(22px,3vw,48px);
+  color:var(--dimmer);
+  font-family:var(--mono);
+  font-size:11px;
+  line-height:2;
+  letter-spacing:.06em;
+}
+.colo-grid h5{
+  color:var(--gold);
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  margin:0 0 12px;
+  font-weight:500;
+}
+.colo-grid p{margin:0 0 14px}
+.colo-grid a{color:var(--bone);text-decoration:none;border-bottom:1px solid var(--line-strong)}
+.colo-grid a:hover{color:var(--gold);border-color:var(--gold)}
+.sigil{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:44px;height:44px;
+  border:1px solid var(--line-strong);
+  border-radius:50%;
+  color:var(--gold);
+  font-size:20px;
+  transition:border-color .3s,background .3s,color .3s,transform .3s;
+}
+.sigil:hover,.sigil:focus-visible{background:var(--gold);color:var(--void);border-color:var(--gold);outline:none;transform:rotate(30deg)}
+.sigil.shake{animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+
+/* ============================================================
+   VOID OVERLAY
+   ============================================================ */
+.void-overlay{
+  position:fixed;inset:0;
+  background:#000;
+  z-index:10000;
+  display:grid;
+  place-items:center;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity 1.1s ease,visibility 1.1s;
+  padding:var(--pad);
+}
+.void-overlay.on{opacity:1;visibility:visible}
+.void-overlay p{
+  font-family:var(--disp);
+  font-weight:300;
+  font-size:clamp(22px,4vw,52px);
+  line-height:1.2;
+  letter-spacing:-.02em;
+  text-align:center;
+  max-width:20ch;
+  margin:0;
+  color:var(--bone);
+  opacity:0;
+  transition:opacity 1.6s ease .5s;
+}
+.void-overlay.on p{opacity:1}
+.void-overlay small{
+  position:absolute;bottom:34px;left:0;right:0;text-align:center;
+  font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+  color:rgba(234,227,210,.32);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:1100px){
+  .map-wrap{grid-template-columns:minmax(0,1fr)}
+  .map-panel{min-height:0}
+  .tl-layout{grid-template-columns:minmax(0,1fr);gap:20px}
+  .tl-sticky{position:sticky;top:0;background:var(--void);padding:14px 0 18px;z-index:6;border-bottom:1px solid var(--line)}
+  .tl-card{display:none}
+  .tl-note{min-height:0;opacity:1;padding:26px 0}
+  .tl-note p{font-size:15.5px}
+  .exp{grid-template-columns:minmax(0,1fr);gap:20px}
+  .orchard{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:860px){
+  .ship-grid{grid-template-columns:minmax(0,1fr)}
+  .tele-stage{grid-template-columns:1fr;gap:14px}
+  .tele-beam{width:1px;height:34px;margin:0 auto}
+  .pod{min-height:0}
+}
+@media(max-width:520px){
+  .hero-meta{font-size:9px;letter-spacing:.12em}
+  .chips{gap:7px}
+  .chip{padding:9px 14px;font-size:10px}
+  .tl-eras{gap:9px}
+  .dial-labels{font-size:9px}
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+  }
+  .mask > span{transform:none !important}
+  .grain{animation:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ATMOSPHERE -->
+<div class="grain" aria-hidden="true"></div>
+<svg class="watermark" id="watermark" aria-hidden="true" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
+  <g fill="none" stroke="rgba(234,227,210,.055)" stroke-width="1">
+    <circle cx="500" cy="500" r="120"/>
+    <circle cx="500" cy="500" r="200"/>
+    <circle cx="500" cy="500" r="280"/>
+    <circle cx="500" cy="500" r="360"/>
+    <circle cx="500" cy="500" r="440"/>
+    <circle cx="500" cy="500" r="520"/>
+    <circle cx="500" cy="500" r="600"/>
+    <circle cx="500" cy="500" r="680"/>
+    <circle cx="500" cy="500" r="760"/>
+  </g>
+  <g fill="none" stroke="rgba(217,164,65,.05)" stroke-width="1">
+    <line x1="500" y1="0" x2="500" y2="1000"/>
+    <line x1="0" y1="500" x2="1000" y2="500"/>
+  </g>
+</svg>
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+
+<!-- ============================================================
+     HERO — ONTOLOGY ENGINE
+     ============================================================ -->
+<header id="hero">
+  <canvas id="engine" aria-hidden="true"></canvas>
+
+  <div class="hero-meta mono">
+    <span>METAPHYSICA · INSTRUMENT NO. 1</span>
+    <span class="hide-sm">LAT 0.0000 · LON 0.0000 · T+13.8 GYR</span>
+  </div>
+
+  <div class="hero-inner">
+    <p class="label" style="margin-bottom:14px">§01 · ONTOLOGY ENGINE</p>
+    <h1 class="hero-q">What is <em>real?</em></h1>
+    <p class="hero-sub" id="heroSub">Everything that is, is. The only question is what the word “is” is doing in that sentence.</p>
+
+    <div class="chips" role="group" aria-label="Reconfigure the ontology engine">
+      <button class="chip" data-mode="existence" aria-pressed="true">Existence</button>
+      <button class="chip" data-mode="time" aria-pressed="false">Time</button>
+      <button class="chip" data-mode="mind" aria-pressed="false">Mind</button>
+      <button class="chip" data-mode="change" aria-pressed="false">Change</button>
+      <button class="chip" data-mode="cause" aria-pressed="false">Cause</button>
+    </div>
+  </div>
+
+  <p class="scroll-cue mono"><span>§01 ONTOLOGY — scroll</span><span class="dotline" aria-hidden="true"></span></p>
+</header>
+
+<main>
+
+<!-- ============================================================
+     §01 THE MAP OF BEING
+     ============================================================ -->
+<section class="sec" id="map" aria-labelledby="mapTitle">
+  <div class="sec-head">
+    <p class="label">§01 · THE MAP OF BEING</p>
+    <h2 class="sec-title" id="mapTitle" data-scramble data-text="Ten questions that will not go away.">Ten questions that will not go away.</h2>
+    <p class="lede mask"><span>Drag to pan, scroll to zoom. Each node is a question that has survived every attempt to answer it. Open one and you get the shortest honest version we can write.</span></p>
+  </div>
+
+  <div class="map-wrap">
+    <div class="map-frame">
+      <div class="map-viewport" id="mapViewport" aria-label="Map of fundamental metaphysical questions. Drag to pan, use the zoom buttons, and press Tab to move through the nodes.">
+        <div class="map-world" id="mapWorld">
+          <svg class="map-edges" id="mapEdges" viewBox="0 0 1200 800" aria-hidden="true"></svg>
+        </div>
+        <p class="map-hint mono">Drag · scroll to zoom · ⌘/ctrl + scroll</p>
+        <div class="map-tools">
+          <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
+          <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
+          <button type="button" id="zoomReset" aria-label="Reset view">⌂</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="map-panel" id="mapPanel" aria-live="polite">
+      <div class="empty" id="mapEmpty">
+        ☉ Select a node.<br>
+        Ten questions.<br>
+        No final answers.<br>
+        Several good arguments.
+      </div>
+      <div id="mapContent" hidden>
+        <button class="close" id="mapClose" aria-label="Close panel">✕</button>
+        <p class="label" id="mpLabel">§ NODE</p>
+        <h3 id="mpTitle">Being</h3>
+        <p class="primer" id="mpPrimer"></p>
+        <p class="thinker" id="mpThinker"></p>
+        <blockquote id="mpQuote"></blockquote>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============================================================
+     §02 TIMELINE OF THOUGHT
+     ============================================================ -->
+<section class="sec" id="timeline" aria-labelledby="tlTitle">
+  <div class="sec-head">
+    <p class="label">§02 · TIMELINE OF THOUGHT</p>
+    <h2 class="sec-title" id="tlTitle" data-scramble data-text="Twenty-five centuries, scrubbed.">Twenty-five centuries, scrubbed.</h2>
+    <p class="lede mask"><span>Drag the rail. The eras light up as you pass through them. Not to scale — the last hundred years would need a microscope.</span></p>
+  </div>
+
+  <div class="tl-layout">
+    <div class="tl-sticky">
+      <div class="tl-readout mono">
+        <span id="tlCounter">01 / 13</span>
+        <span id="tlEraOut">ANCIENT</span>
+      </div>
+
+      <div class="tl-track" id="tlTrack" role="slider" tabindex="0"
+           aria-label="Timeline scrubber"
+           aria-valuemin="1" aria-valuemax="13" aria-valuenow="1" aria-valuetext="Thales of Miletus">
+        <div class="tl-rail"></div>
+        <div class="tl-fill" id="tlFill"></div>
+        <div class="tl-head" id="tlHead" style="left:0"></div>
+        <div id="tlMarks"></div>
+      </div>
+
+      <div class="tl-eras mono" id="tlEras">
+        <span data-era="Ancient">Ancient</span>
+        <span data-era="Medieval">Medieval</span>
+        <span data-era="Early Modern">Early Modern</span>
+        <span data-era="Modern">Modern</span>
+        <span data-era="Contemporary">Contemporary</span>
+      </div>
+
+      <div class="tl-card">
+        <p class="date" id="tlDate">c. 585 BCE</p>
+        <h3 id="tlName">Thales of Miletus</h3>
+        <p id="tlWhat">The world is made of stuff, not of gods. Explanation stops inside nature.</p>
+      </div>
+    </div>
+
+    <div class="tl-notes" id="tlNotes"></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     §03 THE EXPERIMENT LAB
+     ============================================================ -->
+<section class="sec" id="lab" aria-labelledby="labTitle">
+  <div class="sec-head">
+    <p class="label">§03 · THE EXPERIMENT LAB</p>
+    <h2 class="sec-title" id="labTitle" data-scramble data-text="Three machines. Operate them.">Three machines. Operate them.</h2>
+    <p class="lede mask"><span>Each one is a real argument you can move with your hands. Change the setting and watch which answer becomes harder to defend.</span></p>
+  </div>
+
+  <!-- SHIP OF THESEUS -->
+  <article class="exp" aria-labelledby="exp1">
+    <div class="exp-head">
+      <p class="num">EXP. 01</p>
+      <h3 id="exp1">The Ship of Theseus</h3>
+      <p>Theseus’ ship is preserved in harbour. Slowly, every plank is replaced with a new one. When the last original plank is gone, is it the same ship?</p>
+      <p class="q">“The matter has gone. Has the ship?”</p>
+      <p>Plutarch reports the puzzle; Hobbes added the twist that the old planks, reassembled, would make a second claimant to the name.</p>
+    </div>
+
+    <div class="stage">
+      <div class="ship-grid">
+        <svg class="ship" viewBox="0 0 420 260" role="img" aria-label="A ship whose planks are replaced one by one">
+          <defs>
+            <clipPath id="hullClip">
+              <path d="M40,140 L380,140 C372,196 330,224 210,224 C90,224 48,196 40,140 Z"/>
+            </clipPath>
+          </defs>
+          <g clip-path="url(#hullClip)" id="planks"></g>
+          <path class="ship-outline" d="M40,140 L380,140 C372,196 330,224 210,224 C90,224 48,196 40,140 Z"/>
+          <line class="mast" x1="210" y1="140" x2="210" y2="26"/>
+          <path class="sail" d="M206,44 L206,128 L118,128 Z"/>
+          <path class="sail" d="M214,58 L214,128 L292,128 Z"/>
+          <line class="mast" x1="210" y1="26" x2="248" y2="36"/>
+        </svg>
+
+        <div class="ctrl">
+          <label for="plankRange">
+            <span>Planks replaced</span>
+            <span class="val" id="plankVal">0%</span>
+          </label>
+          <input type="range" id="plankRange" min="0" max="100" value="0" step="1"
+                 aria-describedby="plankHelp">
+          <p id="plankHelp" style="color:var(--dimmer);font-size:13.5px;margin:0;font-family:var(--mono);letter-spacing:.04em;">
+            0% = the original timber · 100% = none of it left
+          </p>
+
+          <svg class="dial" viewBox="0 0 300 150" role="img" aria-label="Verdict meter tilting between form and matter">
+            <path class="arc" d="M40,96 A110,110 0 0 1 260,96"/>
+            <g class="tick">
+              <line x1="40" y1="96" x2="34" y2="92"/>
+              <line x1="70" y1="46" x2="66" y2="40"/>
+              <line x1="150" y1="30" x2="150" y2="22"/>
+              <line x1="230" y1="46" x2="234" y2="40"/>
+              <line x1="260" y1="96" x2="266" y2="92"/>
+            </g>
+            <g class="needle" id="needle" style="transform:rotate(0deg)">
+              <line x1="150" y1="96" x2="150" y2="34" stroke="#D9A441" stroke-width="2"/>
+              <circle cx="150" cy="96" r="5" fill="#D9A441"/>
+            </g>
+          </svg>
+          <div class="dial-labels">
+            <span>Same ship · form</span>
+            <span>New ship · matter</span>
+          </div>
+
+          <div class="verdict">
+            <p class="v-lab">Readout</p>
+            <p class="v-txt" id="verdictTxt">Same ship. Not one plank has moved.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- BLOCK UNIVERSE -->
+  <article class="exp" aria-labelledby="exp2">
+    <div class="exp-head">
+      <p class="num">EXP. 02</p>
+      <h3 id="exp2">The Block Universe</h3>
+      <p>Treat spacetime as a single four-dimensional object. Horizontal is space; vertical is time. Every dot is an event.</p>
+      <p class="q">“Is the present a fact about the world, or a fact about you?”</p>
+      <p>Drag the NOW marker. In the A-theory the present is real and everything else fades; in the B-theory every moment is equally real and “now” works like “here” — true only relative to a speaker.</p>
+    </div>
+
+    <div class="stage">
+      <div class="block-wrap">
+        <canvas id="blockCanvas" aria-hidden="true"></canvas>
+        <div class="now-grip" id="nowGrip" role="slider" tabindex="0"
+             aria-label="Position of the present moment"
+             aria-valuemin="0" aria-valuemax="100" aria-valuenow="55"
+             aria-valuetext="Present moment at 55 percent"></div>
+      </div>
+
+      <div class="block-tools">
+        <button class="tbtn" id="btnA" aria-pressed="true">A-theory · tense is real</button>
+        <button class="tbtn" id="btnB" aria-pressed="false">B-theory · block universe</button>
+      </div>
+
+      <p class="block-note" id="blockNote"><b>A-theory.</b> Only the present moment exists. The past has ceased and the future is not yet — the fading is not a limitation of the drawing, it is the claim.</p>
+    </div>
+  </article>
+
+  <!-- TELEPORTER -->
+  <article class="exp" aria-labelledby="exp3">
+    <div class="exp-head">
+      <p class="num">EXP. 03</p>
+      <h3 id="exp3">The Teleporter</h3>
+      <p>Your body is scanned, atom by atom. The information is transmitted. The original is destroyed. On the far side, a body is assembled that is indistinguishable from you, and it remembers this room.</p>
+      <p class="q">“Did you arrive, or did someone who thinks he is you arrive?”</p>
+      <p>Run the three stages in order. Each stage raises a different question, and three philosophers answer it differently.</p>
+    </div>
+
+    <div class="stage">
+      <div class="stepper" role="group" aria-label="Teleporter stages">
+        <button class="tbtn" data-step="1" aria-pressed="false">01 · Scan</button>
+        <button class="tbtn" data-step="2" aria-pressed="false">02 · Destroy</button>
+        <button class="tbtn" data-step="3" aria-pressed="false">03 · Reconstruct</button>
+        <button class="tbtn" data-step="0" aria-pressed="true">Reset</button>
+      </div>
+
+      <div class="tele-stage" id="teleStage" data-step="0">
+        <div class="pod left">
+          <p class="pod-label mono">Origin</p>
+          <div class="fig" id="figL" aria-hidden="true"></div>
+          <div class="scan" aria-hidden="true"></div>
+        </div>
+        <div class="tele-beam" aria-hidden="true"></div>
+        <div class="pod right">
+          <p class="pod-label mono">Destination</p>
+          <div class="fig" id="figR" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="tele-panel">
+        <h4 id="teleQ">Awaiting sequence. Begin with 01 · Scan.</h4>
+        <div class="voices" id="teleVoices"></div>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ============================================================
+     §04 ONE OR MANY?
+     ============================================================ -->
+<section class="sec" id="orchard" aria-labelledby="orchTitle">
+  <div class="sec-head">
+    <p class="label">§04 · ONE OR MANY?</p>
+    <h2 class="sec-title" id="orchTitle" data-scramble data-text="Six apples. One redness.">Six apples. One redness.</h2>
+    <p class="lede mask"><span>The problem of universals: when you say two things are both red, are you pointing at one thing that both share, or two things that resemble each other? Click an apple, then click redness.</span></p>
+  </div>
+
+  <div class="orchard">
+    <svg class="orchard-svg" id="orchardSvg" data-mode="plato" viewBox="0 0 600 480" role="img"
+         aria-label="An orchard diagram showing six apples, with or without a separate Form of Red">
+      <g id="rays" class="rays"></g>
+
+      <g class="form-group" id="formGroup">
+        <circle class="form-core" cx="300" cy="46" r="30"/>
+        <circle class="form-ring" cx="300" cy="46" r="42"/>
+        <text class="form-label" x="300" y="50" text-anchor="middle">RED</text>
+        <text class="form-label" x="300" y="112" text-anchor="middle" style="font-size:9px;opacity:.75">THE FORM ITSELF</text>
+      </g>
+
+      <circle class="orch-canopy" cx="300" cy="250" r="160"/>
+      <path class="orch-trunk" d="M300,440 L300,300"/>
+      <path class="orch-branch" d="M300,330 L230,290"/>
+      <path class="orch-branch" d="M300,340 L372,296"/>
+      <path class="orch-branch" d="M300,300 L262,248"/>
+      <path class="orch-branch" d="M300,306 L344,254"/>
+
+      <g id="apples"></g>
+
+      <line x1="60" y1="450" x2="540" y2="450" stroke="rgba(234,227,210,.14)" stroke-width="1"/>
+      <text class="form-label" x="60" y="470" style="opacity:.5;font-size:9px">ORCHARD, NOT TO SCALE</text>
+    </svg>
+
+    <div class="orch-panel">
+      <div class="orch-props">
+        <button class="tbtn" id="btnPlato" aria-pressed="true">Plato · one Form</button>
+        <button class="tbtn" id="btnAristotle" aria-pressed="false">Aristotle · in the things</button>
+        <button class="tbtn" id="btnRedness" aria-pressed="false">✦ Redness</button>
+      </div>
+
+      <p class="orch-mode-label" id="orchMode">Mode · PLATO</p>
+      <p class="orch-copy" id="orchCopy">
+        <b>Plato.</b> Redness is one thing — a Form — and the six apples have it by participating in it. The apples are red because the Form is red, not the other way round. Notice what this buys you: “red” means exactly the same thing every time you use it. Notice the cost: you now owe an account of how a physical apple relates to a non-physical Form, and of where that Form is.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     §05 THE INTERROGATION
+     ============================================================ -->
+<section class="sec" id="interrogation" aria-labelledby="intTitle">
+  <div class="sec-head">
+    <p class="label">§05 · THE INTERROGATION</p>
+    <h2 class="sec-title" id="intTitle" data-scramble data-text="Five questions. One fingerprint.">Five questions. One fingerprint.</h2>
+    <p class="lede mask"><span>Answer honestly. Each answer is met by a counter-question from someone who spent a life on it. At the end you get a reading of where you actually landed — which is not always where you thought you were.</span></p>
+  </div>
+
+  <div class="interrog" id="interrog"></div>
+</section>
+
+</main>
+
+<!-- ============================================================
+     COLOPHON
+     ============================================================ -->
+<footer class="colophon">
+  <div class="colo-grid">
+    <div>
+      <h5>Sources</h5>
+      <p>Primers and quotations follow the standard translations: Aristotle, <em>Metaphysics</em> (Ross); Plato, <em>Symposium</em> (Nehamas &amp; Woodruff); Augustine, <em>Confessions</em> XI (Pusey); Hume, <em>Enquiry</em> §VII and <em>Treatise</em> 1.4.6 (Selby-Bigge); Kant, <em>Critique of Pure Reason</em> (Guyer &amp; Wood); Locke, <em>Essay</em> II.27.9; Parfit, <em>Reasons and Persons</em> (1984); Whitehead, <em>Process and Reality</em> (1929).</p>
+    </div>
+    <div>
+      <h5>On a borrowed question</h5>
+      <p>Heidegger’s famous question — “Why is there something rather than nothing?” — was not his invention. Leibniz posed it in 1714 as the demand for a sufficient reason; Kant had already called it the final question of all metaphysics. Heidegger’s originality lies in the <em>asking</em>, not in the question.</p>
+    </div>
+    <div>
+      <h5>Colophon</h5>
+      <p>Fraunces (display) · Spectral (body) · IBM Plex Mono (marginalia). One file, no dependencies, no tracking. Particle counts capped; canvases pause when off-screen.</p>
+      <p>Built for a smart sixteen-year-old with ten spare minutes.</p>
+    </div>
+    <div>
+      <h5>Marginalia</h5>
+      <p>☉ the sun · ☽ the moon · ⚶ the quintessence · ♁ the earth</p>
+      <p style="display:flex;align-items:center;gap:12px;margin-top:16px">
+        <button class="sigil" id="sigil" aria-label="An alchemical symbol. Press it. Nothing will happen.">⚶</button>
+        <span style="color:var(--dimmer)">press three times</span>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<!-- VOID -->
+<div class="void-overlay" id="voidOverlay" role="dialog" aria-modal="true" aria-label="A statement about nothing">
+  <p>Nothing, too, is a kind of something.</p>
+  <small>press escape · or click</small>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TAU = Math.PI * 2;
+const clamp = (v,a,b)=>Math.min(b,Math.max(a,v));
+const $ = (s,r)=> (r||document).querySelector(s);
+const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
+
+/* ============================================================
+   WATERMARK PARALLAX
+   ============================================================ */
+(function(){
+  const wm = $('#watermark');
+  if(!wm) return;
+  let ticking = false;
+  function update(){
+    const y = window.scrollY || window.pageYOffset;
+    wm.style.transform = 'translate3d(0,' + (y * 0.055).toFixed(2) + 'px,0)';
+    ticking = false;
+  }
+  window.addEventListener('scroll', ()=>{
+    if(!ticking){ ticking = true; requestAnimationFrame(update); }
+  }, {passive:true});
+  update();
+})();
+
+/* ============================================================
+   CUSTOM CURSOR
+   ============================================================ */
+(function(){
+  if(!window.matchMedia('(pointer:fine)').matches) return;
+  const ring = $('#cursor');
+  if(!ring) return;
+  document.body.classList.add('has-cursor');
+
+  let tx = window.innerWidth/2, ty = window.innerHeight/2;
+  let cx = tx, cy = ty;
+
+  window.addEventListener('pointermove', e=>{ tx = e.clientX; ty = e.clientY; }, {passive:true});
+  window.addEventListener('pointerdown', e=>{ tx = e.clientX; ty = e.clientY; }, {passive:true});
+
+  function loop(){
+    const k = reduced ? 1 : 0.2;
+    cx += (tx - cx) * k;
+    cy += (ty - cy) * k;
+    ring.style.transform = 'translate3d(' + cx.toFixed(2) + 'px,' + cy.toFixed(2) + 'px,0) translate(-50%,-50%)';
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  const SEL = 'a, button, input[type="range"], .node, .apple, [role="slider"]';
+  document.addEventListener('pointerover', e=>{
+    const t = e.target && e.target.closest ? e.target.closest(SEL) : null;
+    ring.classList.toggle('grow', !!t);
+  });
+  document.addEventListener('pointerout', e=>{
+    if(!e.relatedTarget) ring.classList.remove('grow');
+  });
+})();
+
+/* ============================================================
+   REVEALS + SCRAMBLE
+   ============================================================ */
+(function(){
+  const targets = $$('.mask');
+  const scrambles = $$('[data-scramble]');
+
+  if(reduced){
+    targets.forEach(t=>t.classList.add('in'));
+    scrambles.forEach(el=>{ el.textContent = el.dataset.text || el.textContent; });
+    return;
+  }
+
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(!entry.isIntersecting) return;
+      const el = entry.target;
+      el.classList.add('in');
+      if(el.hasAttribute('data-scramble')) scramble(el);
+      io.unobserve(el);
+    });
+  }, {threshold:0.18, rootMargin:'0px 0px -6% 0px'});
+
+  targets.forEach(t=>io.observe(t));
+  scrambles.forEach(t=>io.observe(t));
+
+  const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789·—§¶∆Ω☉☽';
+  function scramble(el){
+    const final = el.dataset.text || el.textContent;
+    if(el.dataset.done) return;
+    el.dataset.done = '1';
+    el.dataset.text = final;
+    const len = final.length;
+    let frame = 0;
+    const FRAMES = 30;
+    const id = setInterval(()=>{
+      frame++;
+      const p = frame / FRAMES;
+      let out = '';
+      for(let i=0;i<len;i++){
+        const c = final[i];
+        if(c === ' ' || c === '\n'){ out += c; continue; }
+        if(i / len < p * 1.5){ out += c; }
+        else { out += GLYPHS[(Math.random()*GLYPHS.length)|0]; }
+      }
+      el.textContent = out;
+      if(frame >= FRAMES){ clearInterval(id); el.textContent = final; }
+    }, 26);
+  }
+})();
+
+/* ============================================================
+   ONTOLOGY ENGINE
+   ============================================================ */
+(function(){
+  const canvas = $('#engine');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d', {alpha:true});
+  const subEl = $('#heroSub');
+  const chips = $$('.chip');
+
+  const MODES = {
+    existence: {density:1.00, speed:0.7, warm:0.45,
+      sub:'Everything that is, is. The only question is what the word “is” is doing in that sentence.'},
+    time:      {density:0.72, speed:1.7, warm:0.12,
+      sub:'Either time is a container that events happen inside, or it is just the name for the order in which they happen.'},
+    mind:      {density:0.40, speed:0.5, warm:0.86,
+      sub:'Experience is the one thing you cannot doubt without using it to do the doubting.'},
+    change:    {density:0.96, speed:2.1, warm:0.62,
+      sub:'If nothing ever changed, nothing would ever be. Becoming is how the world pays for its being.'},
+    cause:     {density:0.60, speed:0.95, warm:1.00,
+      sub:'A cause is not a push. It is a pattern the world keeps, and we mistake the pattern for a force.'}
+  };
+
+  const state = {density:1, speed:0.7, warm:0.45, t:0};
+  const target = {density:1, speed:0.7, warm:0.45};
+
+  /* --- particle construction --- */
+  const RINGS = 7;
+  const RING_COUNTS = [46, 74, 102, 128, 150, 172, 190]; // 862 particles total
+  const RING_BASE = 60;
+  const RING_STEP = 46;
+  const MAX_R = RING_BASE + (RINGS-1)*RING_STEP; // 336
+
+  const particles = [];
+  for(let r=0;r<RINGS;r++){
+    const n = RING_COUNTS[r];
+    for(let i=0;i<n;i++){
+      particles.push({
+        ring:r,
+        a0:(i/n)*TAU + r*0.42 + Math.random()*0.05,
+        r:RING_BASE + r*RING_STEP,
+        rj:(Math.random()-0.5)*9,
+        size:0.55 + Math.random()*0.85,
+        keep:Math.random(),
+        tone:Math.random()
+      });
+    }
+  }
+
+  let W = 0, H = 0, DPR = 1;
+  let running = true;
+  let rafId = null;
+  let last = 0;
+
+  function resize(){
+    const rect = canvas.getBoundingClientRect();
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = Math.max(1, rect.width);
+    H = Math.max(1, rect.height);
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+
+  function lerp(a,b,t){ return a + (b-a)*t; }
+
+  function warmRGB(w){
+    const A = [95,211,196], B = [217,164,65], C = [194,84,58];
+    let o;
+    if(w < 0.5){ const t = w/0.5; o = [lerp(A[0],B[0],t), lerp(A[1],B[1],t), lerp(A[2],B[2],t)]; }
+    else { const t = (w-0.5)/0.5; o = [lerp(B[0],C[0],t), lerp(B[1],C[1],t), lerp(B[2],C[2],t)]; }
+    return [o[0]|0, o[1]|0, o[2]|0];
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+
+    const wide = W > 900;
+    const cx = W * (wide ? 0.63 : 0.5);
+    const cy = H * (wide ? 0.5 : 0.46);
+    const R = Math.min(W * (wide ? 0.42 : 0.44), H * (wide ? 0.46 : 0.5));
+    const k = R / MAX_R;
+    const squash = wide ? 0.42 : 0.62;
+
+    const rgb = warmRGB(state.warm);
+    const base = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',';
+
+    // faint core glow
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.9);
+    g.addColorStop(0, 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.055)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 0.9, 0, TAU);
+    ctx.fill();
+
+    const dens = state.density;
+
+    for(let i=0;i<particles.length;i++){
+      const p = particles[i];
+      if(p.keep > dens) continue;
+
+      const rr = R * ((p.r + p.rj) / MAX_R);
+      const sp = 0.42 / (1 + p.ring * 0.55);
+      const a = p.a0 + state.t * sp;
+      const cos = Math.cos(a), sin = Math.sin(a);
+
+      const x = cx + cos * rr;
+      const y = cy + sin * rr * squash;
+
+      const d = (sin + 1) * 0.5;
+      const size = (0.6 + d * 1.9) * p.size * (k * 1.15);
+      const alpha = 0.10 + d * 0.68;
+
+      ctx.fillStyle = base + alpha.toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  function frame(now){
+    if(!running){ rafId = null; return; }
+    const dt = last ? Math.min(now - last, 48) : 16;
+    last = now;
+
+    state.density += (target.density - state.density) * 0.045;
+    state.speed   += (target.speed   - state.speed)   * 0.045;
+    state.warm    += (target.warm    - state.warm)    * 0.045;
+    state.t       += dt * 0.001 * state.speed;
+
+    draw();
+    rafId = requestAnimationFrame(frame);
+  }
+
+  function start(){
+    if(rafId !== null) return;
+    running = true;
+    last = 0;
+    rafId = requestAnimationFrame(frame);
+  }
+  function stop(){
+    running = false;
+    if(rafId !== null){ cancelAnimationFrame(rafId); rafId = null; }
+  }
+
+  function setMode(key, animate){
+    const m = MODES[key];
+    if(!m) return;
+    target.density = m.density;
+    target.speed = m.speed;
+    target.warm = m.warm;
+
+    if(subEl){
+      subEl.classList.add('fade');
+      setTimeout(()=>{
+        subEl.textContent = m.sub;
+        subEl.classList.remove('fade');
+      }, reduced ? 0 : 200);
+    }
+
+    if(reduced){
+      state.density = m.density; state.speed = m.speed; state.warm = m.warm;
+      draw();
+    }
+  }
+
+  chips.forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      chips.forEach(c=>c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'));
+      setMode(chip.dataset.mode);
+    });
+  });
+
+  resize();
+  draw();
+
+  let rTimer = null;
+  window.addEventListener('resize', ()=>{
+    clearTimeout(rTimer);
+    rTimer = setTimeout(()=>{ resize(); draw(); }, 120);
+  });
+
+  // pause off-screen / hidden
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ if(!reduced) start(); }
+      else stop();
+    });
+  }, {threshold:0.02});
+  io.observe(canvas);
+
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden) stop();
+    else if(!reduced) start();
+  });
+
+  if(!reduced) start();
+})();
+
+/* ============================================================
+   §01 MAP OF BEING
+   ============================================================ */
+(function(){
+  const viewport = $('#mapViewport');
+  const world = $('#mapWorld');
+  const edgesSvg = $('#mapEdges');
+  if(!viewport || !world) return;
+
+  const WW = 1200, WH = 800;
+
+  const NODES = [
+    {
+      id:'being', name:'Being', sym:'☉', x:600, y:105,
+      thinker:'Aristotle',
+      quote:'“Being is said in many ways.”',
+      cite:'Metaphysics V.7',
+      primer:'Why is there anything at all? If nothing existed there would be no one to ask, but the fact that things are, rather than aren’t, still looks like it wants an explanation — or like the kind of thing that admits of none. Being is whatever everything that exists has simply by existing. Aristotle noticed that this cannot be a normal property: “being” is not like “blue,” which divides things into those that have it and those that do not. Everything has it. So metaphysics becomes the study of the most general features of anything whatsoever.'
+    },
+    {
+      id:'form', name:'Form', sym:'⚶', x:295, y:250,
+      thinker:'Plato',
+      quote:'“It is the Beautiful itself, absolute, pure, unmixed, not polluted by human flesh or colours or any other great nonsense of mortality.”',
+      cite:'Symposium 211e',
+      primer:'What makes a dog a dog rather than a very dog-shaped cat? Not the fur, which you could shave off; not the DNA, which drifts a little every generation. Plato’s answer is that each kind has a Form — an unchanging pattern that particular things imitate and share. Forms are grasped by reason, not by the senses, which is why Plato thought mathematics was the best training for philosophy. The modern version of the question is whether our categories are natural joints in reality or useful human carvings.'
+    },
+    {
+      id:'matter', name:'Matter', sym:'♁', x:905, y:250,
+      thinker:'Democritus',
+      quote:'“By convention sweet, by convention bitter, by convention hot, by convention cold, by convention colour: but in reality atoms and void.”',
+      cite:'fr. 125, via Galen',
+      primer:'Is the physical world the foundation, or one description among several? Democritus made a bet that has powered physics ever since: reality is what remains when you subtract the observer. Colour, warmth and sweetness are conventions; atoms and void are not. But the subtraction is harder than it looks. Mass, charge and spin are defined by how things behave in experiments, and quantum theory describes outcomes that only exist relative to an interaction. Idealism takes the opposite line — only minds and their contents exist, and “matter” is a shorthand for regularities in experience.'
+    },
+    {
+      id:'time', name:'Time', sym:'☽', x:145, y:420,
+      thinker:'Augustine',
+      quote:'“What then is time? If no one asks me, I know; if I wish to explain it to one who asks, I know not.”',
+      cite:'Confessions XI.14',
+      primer:'Time has two faces. On one view it is a container: events sit in it like beads on a wire, and it would exist even if nothing happened. On another, time is just the order in which things happen — a relation among events, not a thing in itself. Both fit the same physics, which is why the argument is still open. Add a third puzzle: experience presents one moment as now and the rest as past or future, but the equations are entirely indifferent to which moment that is. Whether the present is special in reality, or only in us, is the problem of time.'
+    },
+    {
+      id:'space', name:'Space', sym:'♁', x:450, y:420,
+      thinker:'Kant',
+      quote:'“Space is not an empirical concept drawn from outer experiences… it is a necessary representation, a priori, which underlies all outer intuitions.”',
+      cite:'Critique of Pure Reason A23/B38',
+      primer:'Is space a container, or a set of relations? Newton held that space exists as an absolute stage even if you removed every object from it. Leibniz replied that space is nothing over and above relations between things: with no things, there would be no distances. Kant argued something stranger — space is neither of those, but the form of our perception, the structure the mind imposes so that experience of an outside is possible at all. Contemporary physics complicates all three: general relativity lets spacetime bend and interact with matter, so it looks less like a stage and more like a participant.'
+    },
+    {
+      id:'causality', name:'Causality', sym:'⚶', x:755, y:420,
+      thinker:'Hume',
+      quote:'“We may define a cause to be an object followed by another, and where all the objects similar to the first are followed by objects similar to the second.”',
+      cite:'An Enquiry Concerning Human Understanding, §VII',
+      primer:'A cause is usually thought of as the thing that makes another thing happen — the push that produces the fall. Hume pointed out that all we ever actually observe is one event following another, again and again. We never observe the making. So either causation is a real power in nature, or it is a habit of expectation our minds project onto regularities. Kant thought Hume was half right: regularity alone is not enough, and causation must be a rule our understanding imposes in order for experience of an objective world to be possible at all.'
+    },
+    {
+      id:'change', name:'Change', sym:'☽', x:1055, y:430,
+      thinker:'Heraclitus',
+      quote:'“You cannot step twice into the same river.”',
+      cite:'fr. 91, traditional rendering',
+      primer:'How can a thing become different and still be that thing? Parmenides found the idea incoherent: if something comes to be, it comes either from what is — in which case it already was — or from what is not, which is nothing and can produce nothing. Change, on that account, is an illusion of the senses. Heraclitus took the opposite line: everything flows and stability is the illusion. Aristotle offered the settlement that stuck — every change involves something that persists and something gained or lost. That distinction between subject and property still does work in every debate about identity.'
+    },
+    {
+      id:'identity', name:'Identity', sym:'☉', x:330, y:625,
+      thinker:'Locke',
+      quote:'“A person is a thinking intelligent being, that has reason and reflection, and can consider itself as itself, the same thinking thing, in different times and places.”',
+      cite:'Essay Concerning Human Understanding II.27.9',
+      primer:'What makes you the same person as the seven-year-old in your photographs? Two candidates: the same stuff, or the same pattern. The stuff answer fails immediately — your atoms have been replaced many times over. The pattern answer is more promising, but patterns can be copied, paused or gradually altered. Locke located identity in consciousness and memory: you are the same person as far back as your memories reach. Hume denied he could find any such thing, only a bundle of perceptions. Parfit concluded the question may be empty: what matters is psychological continuity, and that comes in degrees.'
+    },
+    {
+      id:'mind', name:'Mind', sym:'☽', x:625, y:625,
+      thinker:'Descartes',
+      quote:'“I think, therefore I am.”',
+      cite:'Discourse on Method IV',
+      primer:'You have experiences: the taste of a peach, the ache of a knee, the sense of being you. Everything else you know only by inference. The problem is that physics describes a world of particles and fields with no obvious room for a felt point of view. So either experience is identical to, or produced by, physical processes in the brain; or it is something additional; or the categories of “physical” and “mental” are too crude to describe what is there. Nobody has solved this. What makes it hard is not evidence but the apparent impossibility of deriving “what it’s like” from “what there is.”'
+    },
+    {
+      id:'number', name:'Number', sym:'⚶', x:940, y:635,
+      thinker:'Frege',
+      quote:'“A statement of number contains an assertion about a concept.”',
+      cite:'The Foundations of Arithmetic, §46',
+      primer:'Are numbers invented or discovered? You can count three apples, and also three ideas, three sounds, three causes. “Three” does not seem to be located in the apples. So either numbers are abstract objects that exist independently of anyone counting, or they are rules we have built for manipulating symbols, or they are features of how any thinking creature must structure experience. Frege’s insight was that a statement of number asserts something about a concept rather than about things: “three” says how many objects fall under a description. Whether the abstract objects this posits are real remains genuinely undecided.'
+    }
+  ];
+
+  const EDGES = [
+    ['being','form'],['being','matter'],['being','time'],['being','mind'],
+    ['form','number'],['form','identity'],
+    ['matter','space'],['matter','mind'],['matter','number'],
+    ['time','change'],['time','causality'],
+    ['space','causality'],['space','number'],
+    ['causality','change'],
+    ['identity','mind'],['identity','change'],
+    ['number','mind']
+  ];
+
+  // render edges
+  const byId = {};
+  NODES.forEach(n=>{ byId[n.id] = n; });
+
+  const edgeEls = [];
+  EDGES.forEach(([a,b])=>{
+    const na = byId[a], nb = byId[b];
+    if(!na || !nb) return;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', na.x); line.setAttribute('y1', na.y);
+    line.setAttribute('x2', nb.x); line.setAttribute('y2', nb.y);
+    edgesSvg.appendChild(line);
+    edgeEls.push({a, b, el:line});
+  });
+
+  // render nodes
+  const nodeEls = {};
+  NODES.forEach(n=>{
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'node';
+    btn.style.left = n.x + 'px';
+    btn.style.top = n.y + 'px';
+    btn.dataset.id = n.id;
+    btn.setAttribute('aria-label', n.name + ' — open primer');
+    btn.innerHTML = '<span class="sym" aria-hidden="true">' + n.sym + '</span>' + n.name;
+    btn.addEventListener('click', ()=> select(n.id));
+    btn.addEventListener('focus', ()=> centerOn(n));
+    world.appendChild(btn);
+    nodeEls[n.id] = btn;
+  });
+
+  /* --- transform state --- */
+  let tx = 0, ty = 0, scale = 1;
+
+  function apply(){
+    world.style.transform = 'translate3d(' + tx + 'px,' + ty + 'px,0) scale(' + scale + ')';
+  }
+
+  function fit(){
+    const rect = viewport.getBoundingClientRect();
+    const vw = rect.width, vh = rect.height;
+    scale = Math.min(vw / WW, vh / WH) * 0.94;
+    scale = clamp(scale, 0.3, 1.6);
+    tx = (vw - WW * scale) / 2;
+    ty = (vh - WH * scale) / 2;
+    apply();
+  }
+
+  function zoomAt(px, py, factor){
+    const k2 = clamp(scale * factor, 0.3, 2.4);
+    tx = px - (px - tx) * (k2 / scale);
+    ty = py - (py - ty) * (k2 / scale);
+    scale = k2;
+    apply();
+  }
+
+  function centerOn(n){
+    const rect = viewport.getBoundingClientRect();
+    tx = rect.width/2 - n.x * scale;
+    ty = rect.height/2 - n.y * scale;
+    apply();
+  }
+
+  /* --- pointer pan / pinch --- */
+  const pointers = new Map();
+  let panStart = null;
+  let pinchStart = null;
+
+  viewport.addEventListener('pointerdown', e=>{
+    if(e.target.closest('.map-tools')) return;
+    if(e.target.closest('.node')) return;
+    viewport.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    viewport.classList.add('dragging');
+
+    if(pointers.size === 1){
+      panStart = {x:e.clientX, y:e.clientY, tx, ty};
+    } else if(pointers.size === 2){
+      const pts = Array.from(pointers.values());
+      pinchStart = {
+        d: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y),
+        scale
+      };
+      panStart = null;
+    }
+  });
+
+  viewport.addEventListener('pointermove', e=>{
+    if(!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+
+    if(pointers.size === 2 && pinchStart){
+      const pts = Array.from(pointers.values());
+      const d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      const rect = viewport.getBoundingClientRect();
+      const mx = (pts[0].x + pts[1].x)/2 - rect.left;
+      const my = (pts[0].y + pts[1].y)/2 - rect.top;
+      const factor = clamp(d / (pinchStart.d || 1), 0.5, 2);
+      const desired = clamp(pinchStart.scale * factor, 0.3, 2.4);
+      zoomAt(mx, my, desired / scale);
+      return;
+    }
+
+    if(panStart && pointers.size === 1){
+      tx = panStart.tx + (e.clientX - panStart.x);
+      ty = panStart.ty + (e.clientY - panStart.y);
+      apply();
+    }
+  });
+
+  function endPointer(e){
+    pointers.delete(e.pointerId);
+    if(pointers.size === 0){
+      viewport.classList.remove('dragging');
+      panStart = null;
+      pinchStart = null;
+    }
+    if(pointers.size === 1){
+      const p = Array.from(pointers.values())[0];
+      panStart = {x:p.x, y:p.y, tx, ty};
+      pinchStart = null;
+    }
+  }
+  viewport.addEventListener('pointerup', endPointer);
+  viewport.addEventListener('pointercancel', endPointer);
+
+  viewport.addEventListener('wheel', e=>{
+    e.preventDefault();
+    const rect = viewport.getBoundingClientRect();
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
+    zoomAt(px, py, e.deltaY > 0 ? 0.92 : 1.08);
+  }, {passive:false});
+
+  $('#zoomIn').addEventListener('click', ()=>{
+    const r = viewport.getBoundingClientRect();
+    zoomAt(r.width/2, r.height/2, 1.25);
+  });
+  $('#zoomOut').addEventListener('click', ()=>{
+    const r = viewport.getBoundingClientRect();
+    zoomAt(r.width/2, r.height/2, 0.8);
+  });
+  $('#zoomReset').addEventListener('click', fit);
+
+  /* --- panel --- */
+  const panel = $('#mapPanel');
+  const emptyEl = $('#mapEmpty');
+  const contentEl = $('#mapContent');
+  let current = null;
+
+  function select(id){
+    const n = byId[id];
+    if(!n) return;
+
+    current = id;
+
+    Object.keys(nodeEls).forEach(k=>nodeEls[k].classList.toggle('active', k === id));
+
+    edgeEls.forEach(edge=>{
+      edge.el.classList.toggle('hot', edge.a === id || edge.b === id);
+    });
+
+    emptyEl.hidden = true;
+    contentEl.hidden = false;
+    $('#mpLabel').textContent = '§ NODE · ' + n.name.toUpperCase();
+    $('#mpTitle').textContent = n.name;
+    $('#mpPrimer').textContent = n.primer;
+    $('#mpThinker').textContent = 'Key thinker · ' + n.thinker;
+    $('#mpQuote').innerHTML = n.quote + '<cite>' + n.cite + '</cite>';
+  }
+
+  function clear(){
+    current = null;
+    Object.keys(nodeEls).forEach(k=>nodeEls[k].classList.remove('active'));
+    edgeEls.forEach(edge=>edge.el.classList.remove('hot'));
+    emptyEl.hidden = false;
+    contentEl.hidden = true;
+  }
+
+  $('#mapClose').addEventListener('click', clear);
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'Escape' && current) clear();
+  });
+
+  fit();
+  let ft = null;
+  window.addEventListener('resize', ()=>{
+    clearTimeout(ft);
+    ft = setTimeout(fit, 160);
+  });
+})();
+
+/* ============================================================
+   §02 TIMELINE
+   ============================================================ */
+(function(){
+  const MILESTONES = [
+    {date:'c. 585 BCE', era:'Ancient', name:'Thales of Miletus',
+     what:'The world is made of stuff, not of gods. Explanation stops inside nature.',
+     note:'Thales is remembered less for his answer — everything is water — than for his method. He assumed that the multiplicity of things comes from one underlying stuff, and that the explanation must be found in nature rather than in the wills of gods. That move, not the water, is where philosophy begins.'},
+    {date:'c. 475 BCE', era:'Ancient', name:'Parmenides',
+     what:'Change and plurality are illusions; only what is, is.',
+     note:'Parmenides argued that “what is not” cannot be thought or spoken, and therefore cannot be the source of anything. Coming-to-be is impossible. His poem set the agenda for a thousand years: whatever else a theory of reality does, it must explain how change and difference can be real without something arising from nothing.'},
+    {date:'c. 380 BCE', era:'Ancient', name:'Plato',
+     what:'Behind every kind of thing lies a Form that makes it intelligible.',
+     note:'Plato’s Socrates asks what makes a just act just, or a beautiful thing beautiful. Not this feature or that one — those can be removed. What remains is a Form: eternal, unchanging, grasped by reason rather than by the senses. Knowledge is knowledge of Forms; opinion is what we have about their copies.'},
+    {date:'c. 340 BCE', era:'Ancient', name:'Aristotle',
+     what:'Being is said in many ways; forms live inside things, not in a separate heaven.',
+     note:'Aristotle kept Plato’s forms but refused to house them elsewhere. The form of a horse is the organising principle of this horse — its substance. He also asked what “exists” means, and answered that it means different things for a substance, a quality, a quantity and a relation. Metaphysics becomes a structured inquiry rather than a single question.'},
+    {date:'c. 400 CE', era:'Medieval', name:'Augustine of Hippo',
+     what:'Time is a distension of the mind; God stands outside it.',
+     note:'Augustine asked what time is and found he could not say. Past and future do not exist; the present has no duration. His answer: time exists in the mind as memory, attention and expectation. He also introduced the idea that God is not inside time, so “before creation” is not a coherent phrase.'},
+    {date:'c. 1265', era:'Medieval', name:'Thomas Aquinas',
+     what:'Reason and revelation are two roads to the same summit; existence is not a property.',
+     note:'Aquinas absorbed Aristotle into Christian theology and, in doing so, made a distinction that still matters: what a thing is (its essence) is not the same as the fact that it is (its existence). For everything except God, existence is received rather than included in the essence. Philosophy and theology can disagree without either being irrational.'},
+    {date:'1641', era:'Early Modern', name:'René Descartes',
+     what:'Doubt everything until you hit the one thing that cannot be doubted: thinking.',
+     note:'Descartes used doubt as an instrument, not a destination. He found he could doubt his senses, his body, even the existence of the world — but not that he was doubting. From “I think, therefore I am” he tried to rebuild knowledge, and in the process made the relation between mind and matter the central problem of modern philosophy.'},
+    {date:'1781', era:'Early Modern', name:'Immanuel Kant',
+     what:'The mind contributes structure to experience; we know appearances, not things in themselves.',
+     note:'Hume woke Kant from what he called his dogmatic slumber by showing that causation cannot simply be read off experience. Kant’s reply: space, time and causation are not features of the world we discover but the conditions under which anything can appear to us at all. We can know the world as it appears; we cannot know it as it is apart from our forms of intuition.'},
+    {date:'1807', era:'Modern', name:'G. W. F. Hegel',
+     what:'Reality is a process; contradiction is not a failure of thought but its engine.',
+     note:'Hegel denied that reality is a collection of finished things. For him, what exists is the unfolding of a process in which each stage generates its opposite and is preserved in a higher unity. Whether this is profound insight or elaborate wordplay has been argued about ever since.'},
+    {date:'1907', era:'Modern', name:'Henri Bergson',
+     what:'Lived duration is not clock time; the intellect spatialises what it cannot grasp.',
+     note:'Bergson distinguished clock time — measurable, divisible, spatialised — from durée: lived duration, qualitative and indivisible. He argued that the intellect, built for action, inevitably turns continuous becoming into a series of discrete states, and then mistakes its own diagram for the thing.'},
+    {date:'1927', era:'Modern', name:'Martin Heidegger',
+     what:'The question of being has been forgotten; we must ask it from within our own existence.',
+     note:'Heidegger’s complaint was that philosophy had spent two millennia analysing beings and never asked what “to be” means. His method was to interrogate the one being who asks the question — us — and to describe our existence as thrown, projecting, and already entangled with a world. The analysis is famous, and famously unfinished.'},
+    {date:'1929', era:'Modern', name:'A. N. Whitehead',
+     what:'The many become one and are increased by one. Process, not substance, is fundamental.',
+     note:'Whitehead replaced enduring substances with “actual occasions” — momentary events that take up their predecessors and add themselves to the world. On this view a thing is not an object that persists; it is a society of events with sufficient stability to be named. Process philosophy remains a live option in metaphysics and theology.'},
+    {date:'1925–', era:'Contemporary', name:'Quantum foundations',
+     what:'Measurement, superposition and entanglement break the classical picture of a world with definite properties.',
+     note:'Quantum theory works spectacularly well and tells us almost nothing about what it means. Superposition suggests properties may not be definite before measurement; entanglement suggests that separated systems can be correlated in ways no local classical model allows. Whether this requires a new metaphysics, or only a new way of talking, is still open.'}
+  ];
+
+  const track = $('#tlTrack');
+  const marksWrap = $('#tlMarks');
+  const fill = $('#tlFill');
+  const head = $('#tlHead');
+  const notes = $('#tlNotes');
+  const counter = $('#tlCounter');
+  const eraOut = $('#tlEraOut');
+  const dateEl = $('#tlDate');
+  const nameEl = $('#tlName');
+  const whatEl = $('#tlWhat');
+  const eraSpans = $$('#tlEras span');
+
+  const N = MILESTONES.length;
+
+  // marks
+  const markEls = [];
+  MILESTONES.forEach((m,i)=>{
+    const d = document.createElement('div');
+    d.className = 'tl-mark';
+    d.style.left = (i/(N-1)*100) + '%';
+    marksWrap.appendChild(d);
+    markEls.push(d);
+  });
+
+  // notes
+  MILESTONES.forEach((m,i)=>{
+    const art = document.createElement('article');
+    art.className = 'tl-note';
+    art.dataset.i = i;
+    art.innerHTML =
+      '<p class="n-date">' + m.date + ' · ' + m.era + '</p>' +
+      '<h4>' + m.name + '</h4>' +
+      '<p>' + m.note + '</p>';
+    notes.appendChild(art);
+  });
+  const noteEls = $$('.tl-note', notes);
+
+  let index = 0;
+  let programmatic = false;
+  let progTimer = null;
+
+  track.setAttribute('aria-valuemax', String(N));
+
+  function setIndex(i, opts){
+    opts = opts || {};
+    i = clamp(i, 0, N-1);
+    index = i;
+    const m = MILESTONES[i];
+
+    markEls.forEach((el,k)=> el.classList.toggle('on', k <= i));
+    fill.style.width = (i/(N-1)*100) + '%';
+    head.style.left = (i/(N-1)*100) + '%';
+
+    counter.textContent = String(i+1).padStart(2,'0') + ' / ' + N;
+    eraOut.textContent = m.era.toUpperCase();
+    dateEl.textContent = m.date;
+    nameEl.textContent = m.name;
+    whatEl.textContent = m.what;
+
+    eraSpans.forEach(s=> s.classList.toggle('on', s.dataset.era === m.era));
+    noteEls.forEach((el,k)=> el.classList.toggle('on', k === i));
+
+    track.setAttribute('aria-valuenow', String(i+1));
+    track.setAttribute('aria-valuetext', m.name + ', ' + m.date);
+
+    if(opts.scroll){
+      const el = noteEls[i];
+      const top = el.getBoundingClientRect().top + window.pageYOffset - window.innerHeight * 0.28;
+      programmatic = true;
+      window.scrollTo({top: top, behavior: reduced ? 'auto' : 'smooth'});
+      clearTimeout(progTimer);
+      progTimer = setTimeout(()=>{ programmatic = false; }, reduced ? 60 : 760);
+    }
+  }
+
+  function indexFromX(clientX){
+    const rect = track.getBoundingClientRect();
+    const p = clamp((clientX - rect.left) / rect.width, 0, 1);
+    return Math.round(p * (N-1));
+  }
+
+  let dragging = false;
+  track.addEventListener('pointerdown', e=>{
+    dragging = true;
+    track.setPointerCapture(e.pointerId);
+    setIndex(indexFromX(e.clientX), {scroll:true});
+  });
+  track.addEventListener('pointermove', e=>{
+    if(!dragging) return;
+    setIndex(indexFromX(e.clientX), {scroll:false});
+  });
+  function up(e){
+    if(!dragging) return;
+    dragging = false;
+    setIndex(index, {scroll:true});
+  }
+  track.addEventListener('pointerup', up);
+  track.addEventListener('pointercancel', up);
+
+  track.addEventListener('keydown', e=>{
+    if(e.key === 'ArrowRight' || e.key === 'ArrowDown'){
+      e.preventDefault();
+      setIndex(index + 1, {scroll:true});
+    } else if(e.key === 'ArrowLeft' || e.key === 'ArrowUp'){
+      e.preventDefault();
+      setIndex(index - 1, {scroll:true});
+    } else if(e.key === 'Home'){
+      e.preventDefault(); setIndex(0, {scroll:true});
+    } else if(e.key === 'End'){
+      e.preventDefault(); setIndex(N-1, {scroll:true});
+    }
+  });
+
+  // scroll sync
+  let sTick = false;
+  window.addEventListener('scroll', ()=>{
+    if(programmatic || sTick) return;
+    sTick = true;
+    requestAnimationFrame(()=>{
+      sTick = false;
+      const mid = window.innerHeight * 0.42;
+      let best = 0, bestD = Infinity;
+      noteEls.forEach((el,i)=>{
+        const r = el.getBoundingClientRect();
+        const c = r.top + r.height/2;
+        const d = Math.abs(c - mid);
+        if(d < bestD){ bestD = d; best = i; }
+      });
+      if(best !== index){
+        index = best;
+        const m = MILESTONES[best];
+        markEls.forEach((el,k)=> el.classList.toggle('on', k <= best));
+        fill.style.width = (best/(N-1)*100) + '%';
+        head.style.left = (best/(N-1)*100) + '%';
+        counter.textContent = String(best+1).padStart(2,'0') + ' / ' + N;
+        eraOut.textContent = m.era.toUpperCase();
+        dateEl.textContent = m.date;
+        nameEl.textContent = m.name;
+        whatEl.textContent = m.what;
+        eraSpans.forEach(s=> s.classList.toggle('on', s.dataset.era === m.era));
+        noteEls.forEach((el,k)=> el.classList.toggle('on', k === best));
+        track.setAttribute('aria-valuenow', String(best+1));
+        track.setAttribute('aria-valuetext', m.name + ', ' + m.date);
+      }
+    });
+  }, {passive:true});
+
+  setIndex(0);
+})();
+
+/* ============================================================
+   §03a SHIP OF THESEUS
+   ============================================================ */
+(function(){
+  const planksGroup = $('#planks');
+  if(!planksGroup) return;
+  const range = $('#plankRange');
+  const valEl = $('#plankVal');
+  const needle = $('#needle');
+  const verdict = $('#verdictTxt');
+
+  const PLANK_COUNT = 8;
+  const TOP = 140, BOT = 224;
+  const H = (BOT - TOP) / PLANK_COUNT;
+  const planks = [];
+
+  for(let i=0;i<PLANK_COUNT;i++){
+    const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    r.setAttribute('x', '20');
+    r.setAttribute('y', (TOP + i*H).toFixed(2));
+    r.setAttribute('width', '380');
+    r.setAttribute('height', (H + 0.6).toFixed(2));
+    r.setAttribute('class', 'plank old');
+    planksGroup.appendChild(r);
+    planks.push(r);
+  }
+
+  function verdictFor(p){
+    if(p < 12) return 'Same ship. Not one plank has moved.';
+    if(p < 38) return 'Still the same ship — the form and the history are intact, and no one would say otherwise.';
+    if(p < 62) return 'Contested territory. This is where Hobbes and Locke disagree, and neither is being silly.';
+    if(p < 88) return 'Leaning towards a new ship: most of the matter that made it is gone.';
+    if(p < 100) return 'Almost entirely new. The pattern survives; the stuff does not.';
+    return 'A new ship — every plank replaced. Only the shape and the name came through.';
+  }
+
+  function update(){
+    const p = Number(range.value);
+    valEl.textContent = p + '%';
+
+    const replaced = Math.round(p / 100 * PLANK_COUNT);
+    planks.forEach((el, i)=>{
+      const isNew = i < replaced;
+      el.setAttribute('class', 'plank ' + (isNew ? 'new' : 'old'));
+    });
+
+    // needle: non-linear so the middle of the range is where the argument lives
+    const t = p / 100;
+    const eased = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2;
+    const angle = -52 + eased * 104;
+    needle.style.transform = 'rotate(' + angle.toFixed(2) + 'deg)';
+
+    verdict.textContent = verdictFor(p);
+  }
+
+  range.addEventListener('input', update);
+  update();
+})();
+
+/* ============================================================
+   §03b BLOCK UNIVERSE
+   ============================================================ */
+(function(){
+  const canvas = $('#blockCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const grip = $('#nowGrip');
+  const btnA = $('#btnA');
+  const btnB = $('#btnB');
+  const noteEl = $('#blockNote');
+
+  let W = 0, H = 0, DPR = 1;
+  let theory = 'A';
+  let nowT = 0.55;          // 0 = top (far future), 1 = bottom (far past)
+  let phase = 0;
+  let running = true;
+  let rafId = null;
+  let last = 0;
+
+  // events in normalized space
+  const EVENTS = [];
+  (function seed(){
+    let s = 20240517;
+    function rnd(){ s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; }
+    for(let i=0;i<64;i++){
+      EVENTS.push({
+        x: 0.04 + rnd()*0.92,
+        y: 0.05 + rnd()*0.9,
+        r: 1.4 + rnd()*1.9,
+        w: rnd()
+      });
+    }
+  })();
+
+  function resize(){
+    const rect = canvas.getBoundingClientRect();
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = Math.max(1, rect.width);
+    H = Math.max(1, rect.height);
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+
+    const padL = 46, padR = 16, padT = 16, padB = 24;
+    const gw = W - padL - padR;
+    const gh = H - padT - padB;
+    const gx = padL, gy = padT;
+
+    // grid
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(234,227,210,0.07)';
+    ctx.beginPath();
+    for(let i=0;i<=8;i++){
+      const x = gx + gw * (i/8);
+      ctx.moveTo(x, gy); ctx.lineTo(x, gy+gh);
+    }
+    for(let i=0;i<=6;i++){
+      const y = gy + gh * (i/6);
+      ctx.moveTo(gx, y); ctx.lineTo(gx+gw, y);
+    }
+    ctx.stroke();
+
+    const nowY = gy + gh * nowT;
+
+    // A-theory light cones
+    if(theory === 'A'){
+      const apexX = gx + gw * 0.5;
+      const reach = Math.max(gw, gh) * (0.25 + phase * 0.95);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(gx, gy, gw, gh);
+      ctx.clip();
+
+      // future cone (upward) and past cone (downward)
+      [1,-1].forEach(dir=>{
+        ctx.beginPath();
+        ctx.moveTo(apexX, nowY);
+        ctx.lineTo(apexX - reach, nowY + dir * reach * 0.62);
+        ctx.lineTo(apexX + reach, nowY + dir * reach * 0.62);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(95,211,196,0.055)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(95,211,196,0.20)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+      ctx.restore();
+    }
+
+    // events
+    EVENTS.forEach(ev=>{
+      const x = gx + gw * ev.x;
+      const y = gy + gh * ev.y;
+      const d = Math.abs(ev.y - nowT);
+
+      let alpha, radius, color;
+      if(theory === 'A'){
+        alpha = 0.06 + 0.92 * Math.exp(-d * 7.5);
+        radius = ev.r * (0.6 + 0.6 * Math.exp(-d * 5));
+        color = ev.w > 0.82 ? '217,164,65' : '95,211,196';
+      } else {
+        alpha = 0.78;
+        radius = ev.r;
+        color = ev.w > 0.5 ? '217,164,65' : '95,211,196';
+      }
+
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(' + color + ',' + alpha.toFixed(3) + ')';
+      ctx.arc(x, y, radius, 0, TAU);
+      ctx.fill();
+    });
+
+    // NOW line
+    ctx.save();
+    if(theory === 'A'){
+      ctx.shadowColor = 'rgba(217,164,65,0.9)';
+      ctx.shadowBlur = 16;
+      ctx.strokeStyle = 'rgba(217,164,65,0.95)';
+      ctx.lineWidth = 1.5;
+    } else {
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(217,164,65,0.5)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5,6]);
+    }
+    ctx.beginPath();
+    ctx.moveTo(gx, nowY);
+    ctx.lineTo(gx + gw, nowY);
+    ctx.stroke();
+    ctx.restore();
+
+    // labels
+    ctx.font = '10px "IBM Plex Mono", monospace';
+    ctx.fillStyle = 'rgba(234,227,210,0.5)';
+    ctx.textAlign = 'left';
+    ctx.save();
+    ctx.translate(20, gy + gh/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.textAlign = 'center';
+    ctx.fillText('TIME', 0, 0);
+    ctx.restore();
+
+    ctx.textAlign = 'left';
+    ctx.fillText('SPACE', gx, gy + gh + 16);
+
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(217,164,65,0.85)';
+    ctx.fillText(theory === 'A' ? 'NOW — the only real moment' : 'NOW — indexical, like "here"', gx + gw - 6, nowY - 7);
+    ctx.restore();
+  }
+
+  function frame(now){
+    if(!running){ rafId = null; return; }
+    const dt = last ? Math.min(now - last, 50) : 16;
+    last = now;
+    if(theory === 'A' && !reduced){
+      phase += dt * 0.00042;
+      if(phase > 1) phase = 0;
+    }
+    draw();
+    rafId = requestAnimationFrame(frame);
+  }
+
+  function start(){ if(rafId === null){ running = true; last = 0; rafId = requestAnimationFrame(frame); } }
+  function stop(){ running = false; if(rafId !== null){ cancelAnimationFrame(rafId); rafId = null; } }
+
+  /* --- interaction --- */
+  function setFromClientY(clientY){
+    const rect = canvas.getBoundingClientRect();
+    const padT = 16, padB = 24;
+    const gh = rect.height - padT - padB;
+    const t = clamp((clientY - rect.top - padT) / gh, 0, 1);
+    nowT = t;
+    grip.setAttribute('aria-valuenow', String(Math.round((1-t)*100)));
+    grip.setAttribute('aria-valuetext', 'Present moment at ' + Math.round((1-t)*100) + ' percent');
+    if(reduced) draw();
+  }
+
+  let gripDrag = false;
+  grip.addEventListener('pointerdown', e=>{
+    gripDrag = true;
+    grip.setPointerCapture(e.pointerId);
+    setFromClientY(e.clientY);
+    e.preventDefault();
+  });
+  grip.addEventListener('pointermove', e=>{ if(gripDrag) setFromClientY(e.clientY); });
+  grip.addEventListener('pointerup', ()=>{ gripDrag = false; });
+  grip.addEventListener('pointercancel', ()=>{ gripDrag = false; });
+
+  grip.addEventListener('keydown', e=>{
+    const step = e.shiftKey ? 0.1 : 0.025;
+    if(e.key === 'ArrowUp'){ e.preventDefault(); nowT = clamp(nowT - step, 0, 1); syncGrip(); }
+    else if(e.key === 'ArrowDown'){ e.preventDefault(); nowT = clamp(nowT + step, 0, 1); syncGrip(); }
+    else if(e.key === 'Home'){ e.preventDefault(); nowT = 0; syncGrip(); }
+    else if(e.key === 'End'){ e.preventDefault(); nowT = 1; syncGrip(); }
+  });
+
+  function syncGrip(){
+    const pct = Math.round((1-nowT)*100);
+    grip.setAttribute('aria-valuenow', String(pct));
+    grip.setAttribute('aria-valuetext', 'Present moment at ' + pct + ' percent');
+    if(reduced) draw();
+  }
+
+  canvas.addEventListener('pointerdown', e=>{
+    if(e.pointerType === 'touch') return;
+    setFromClientY(e.clientY);
+    let dragging = true;
+    function move(ev){ if(dragging) setFromClientY(ev.clientY); }
+    function up(){ dragging = false; window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); }
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  });
+
+  function setTheory(t){
+    theory = t;
+    btnA.setAttribute('aria-pressed', t === 'A' ? 'true' : 'false');
+    btnB.setAttribute('aria-pressed', t === 'B' ? 'true' : 'false');
+    noteEl.innerHTML = t === 'A'
+      ? '<b>A-theory.</b> Only the present moment exists. The past has ceased and the future is not yet — the fading is not a limitation of the drawing, it is the claim.'
+      : '<b>B-theory.</b> All moments are equally real. The whole block is there, and "now" picks out a location in it the way "here" picks out a place. Nothing fades, because nothing is more real than anything else.';
+    if(reduced) draw();
+  }
+
+  btnA.addEventListener('click', ()=> setTheory('A'));
+  btnB.addEventListener('click', ()=> setTheory('B'));
+
+  resize();
+  syncGrip();
+  draw();
+
+  let rt = null;
+  window.addEventListener('resize', ()=>{
+    clearTimeout(rt);
+    rt = setTimeout(()=>{ resize(); draw(); }, 140);
+  });
+
+  const io = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ if(!reduced) start(); }
+      else stop();
+    });
+  }, {threshold:0.02});
+  io.observe(canvas);
+
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden) stop();
+    else if(!reduced) start();
+  });
+
+  if(!reduced) start();
+})();
+
+/* ============================================================
+   §03c TELEPORTER
+   ============================================================ */
+(function(){
+  const stage = $('#teleStage');
+  if(!stage) return;
+  const figL = $('#figL');
+  const figR = $('#figR');
+  const qEl = $('#teleQ');
+  const voicesEl = $('#teleVoices');
+  const buttons = $$('.stepper .tbtn');
+
+  // build figures
+  const POS = [
+    [50,8],[38,18],[62,18],[50,30],[36,32],[64,32],[50,44],
+    [42,58],[58,58],[50,70],[40,84],[60,84],[50,96],
+    [30,46],[70,46]
+  ];
+
+  function buildFigure(el, mirror){
+    el.innerHTML = '';
+    POS.forEach((p, i)=>{
+      const d = document.createElement('i');
+      const x = mirror ? (100 - p[0]) : p[0];
+      d.style.setProperty('--x', x);
+      d.style.setProperty('--y', p[1]);
+      d.style.setProperty('--sx', ((Math.random()-0.5) * 90).toFixed(1));
+      d.style.setProperty('--sy', ((Math.random()-0.5) * 90).toFixed(1));
+      d.style.animationDelay = (i * 30) + 'ms';
+      el.appendChild(d);
+    });
+  }
+  buildFigure(figL, false);
+  buildFigure(figR, true);
+
+  const CONTENT = {
+    0: {
+      q: 'Awaiting sequence. Begin with 01 · Scan.',
+      voices: []
+    },
+    1: {
+      q: 'Stage 01 — SCAN. The scanner has copied you perfectly. The original is still standing there. Which one is you?',
+      voices: [
+        ['Locke', 'The person follows consciousness. If both bodies carry your memories, both are you — and the criterion has broken, because one person cannot be two.'],
+        ['Parfit', 'Nothing has broken. “You” were never a single thing. There are now two overlapping streams of psychological continuity, and that is a fact about the world, not a paradox.'],
+        ['Hume', 'There was never a “you” to copy — only a bundle of perceptions. Copying a bundle is no stranger than copying a pattern.']
+      ]
+    },
+    2: {
+      q: 'Stage 02 — DESTROY. The original is gone. Does the destruction change anything about who arrives?',
+      voices: [
+        ['Locke', 'It changes everything and nothing. The consciousness that wakes up is continuous with yours, so it is you — but you did not survive, because there is no one left to be you.'],
+        ['Parfit', 'It changes nothing that matters. If what matters is psychological continuity, continuity has been preserved. The fear of death is largely a fear of a gap that does not exist.'],
+        ['Hume', 'The question assumes an owner of the perceptions. Look for that owner and you find only perceptions. There was no more to lose than there was to save.']
+      ]
+    },
+    3: {
+      q: 'Stage 03 — RECONSTRUCT. Someone wakes on the far side with your memories, your voice, your unfinished plans. Is he you?',
+      voices: [
+        ['Parfit', 'He is what matters. Call it survival, or call it a relation that matters as much as identity — the name is a decision, not a discovery.'],
+        ['Locke', 'He is the same person, because sameness of person just is continuity of consciousness. Whether he is the same man in the biological sense is a different question with a different answer.'],
+        ['Hume', 'He is a bundle of perceptions closely resembling a bundle you used to call yours. That is all anyone ever was.']
+      ]
+    }
+  };
+
+  function setStep(n){
+    stage.dataset.step = String(n);
+    buttons.forEach(b=>{
+      const v = Number(b.dataset.step);
+      b.setAttribute('aria-pressed', v === n ? 'true' : 'false');
+    });
+
+    const c = CONTENT[n];
+    qEl.textContent = c.q;
+    voicesEl.innerHTML = '';
+    c.voices.forEach(v=>{
+      const row = document.createElement('div');
+      row.className = 'voice';
+      row.innerHTML = '<span class="who">' + v[0] + '</span><p>' + v[1] + '</p>';
+      voicesEl.appendChild(row);
+    });
+  }
+
+  buttons.forEach(b=>{
+    b.addEventListener('click', ()=> setStep(Number(b.dataset.step)));
+  });
+
+  setStep(0);
+})();
+
+/* ============================================================
+   §04 ONE OR MANY?
+   ============================================================ */
+(function(){
+  const svg = $('#orchardSvg');
+  if(!svg) return;
+  const applesGroup = $('#apples');
+  const raysGroup = $('#rays');
+  const copyEl = $('#orchCopy');
+  const modeEl = $('#orchMode');
+  const btnPlato = $('#btnPlato');
+  const btnAristotle = $('#btnAristotle');
+  const btnRedness = $('#btnRedness');
+
+  const APPLES = [
+    {x:210, y:190},
+    {x:300, y:150},
+    {x:385, y:195},
+    {x:180, y:290},
+    {x:320, y:285},
+    {x:410, y:300}
+  ];
+
+  const FORM = {x:300, y:46};
+
+  const TEXT_PLATO = '<b>Plato.</b> Redness is one thing — a Form — and the six apples have it by participating in it. The apples are red because the Form is red, not the other way round. What this buys you: “red” means exactly the same thing every time you use it. The cost: you now owe an account of how a physical apple relates to a non-physical Form, and of where that Form is.';
+  const TEXT_ARIST = '<b>Aristotle.</b> There is no separate Form of Red. Redness is real, but it is real <em>in</em> things: each apple has its own redness, and the six resemble one another closely enough that we use one word for them. What this buys you: no mysterious traffic between two worlds. The cost: you must explain why resemblance is enough, and what makes the resemblance the right one rather than an accident.';
+  const TEXT_APPLE = '<b>One apple.</b> This apple is red. So are the other five. The question is whether “red” names one thing they all share, or a family of similar things. Nothing in the apple itself settles it — that is what makes it a philosophical question rather than a scientific one.';
+  const TEXT_RED = '<b>Redness.</b> One word, six instances. Either it names a single entity that all six point to (Plato), or it names a resemblance between six self-sufficient things (Aristotle). Notice that both accounts do the same work in ordinary life. The disagreement is about what the world has to contain for the word to work.';
+
+  const appleEls = [];
+
+  APPLES.forEach((a, i)=>{
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','apple');
+    g.setAttribute('tabindex','0');
+    g.setAttribute('role','button');
+    g.setAttribute('aria-label','Apple ' + (i+1) + ' — inspect');
+
+    const outer = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    outer.setAttribute('class','outer');
+    outer.setAttribute('cx', a.x);
+    outer.setAttribute('cy', a.y);
+    outer.setAttribute('r', 17);
+
+    const core = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    core.setAttribute('class','core');
+    core.setAttribute('cx', a.x);
+    core.setAttribute('cy', a.y);
+    core.setAttribute('r', 6);
+
+    g.appendChild(outer);
+    g.appendChild(core);
+    g.addEventListener('click', ()=> onApple(i));
+    g.addEventListener('keydown', e=>{
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); onApple(i); }
+    });
+    applesGroup.appendChild(g);
+    appleEls.push(g);
+  });
+
+  // rays from form to apples
+  APPLES.forEach(a=>{
+    const l = document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('class','ray');
+    l.setAttribute('x1', FORM.x);
+    l.setAttribute('y1', FORM.y + 44);
+    l.setAttribute('x2', a.x);
+    l.setAttribute('y2', a.y);
+    raysGroup.appendChild(l);
+  });
+
+  let mode = 'plato';
+
+  function setMode(m){
+    mode = m;
+    svg.setAttribute('data-mode', m);
+    btnPlato.setAttribute('aria-pressed', m === 'plato' ? 'true' : 'false');
+    btnAristotle.setAttribute('aria-pressed', m === 'aristotle' ? 'true' : 'false');
+    modeEl.textContent = 'Mode · ' + (m === 'plato' ? 'PLATO' : 'ARISTOTLE');
+    copyEl.innerHTML = m === 'plato' ? TEXT_PLATO : TEXT_ARIST;
+    appleEls.forEach(el=> el.classList.remove('hi'));
+    btnRedness.setAttribute('aria-pressed','false');
+  }
+
+  function onApple(i){
+    appleEls.forEach((el,k)=> el.classList.toggle('hi', k === i));
+    btnRedness.setAttribute('aria-pressed','false');
+    copyEl.innerHTML = TEXT_APPLE;
+  }
+
+  btnRedness.addEventListener('click', ()=>{
+    const on = btnRedness.getAttribute('aria-pressed') !== 'true';
+    btnRedness.setAttribute('aria-pressed', on ? 'true' : 'false');
+    appleEls.forEach(el=> el.classList.toggle('hi', on));
+    copyEl.innerHTML = on ? TEXT_RED : (mode === 'plato' ? TEXT_PLATO : TEXT_ARIST);
+  });
+
+  btnPlato.addEventListener('click', ()=> setMode('plato'));
+  btnAristotle.addEventListener('click', ()=> setMode('aristotle'));
+
+  setMode('plato');
+})();
+
+/* ============================================================
+   §05 THE INTERROGATION
+   ============================================================ */
+(function(){
+  const root = $('#interrog');
+  if(!root) return;
+
+  const QUESTIONS = [
+    {
+      q: 'Does a thing exist if it can’t be perceived?',
+      voice: 'Berkeley',
+      opts: [
+        {t:'No — to be is to be perceived.', s:{ideal:2, emp:1},
+         r:'Then what keeps the tree in the quad in being between your glances? If nothing is perceiving it, is it nowhere? I say it is always perceived — by a mind greater than yours.'},
+        {t:'Yes — existence doesn’t depend on any observer.', s:{real:2},
+         r:'Very well. Then tell me what “matter” adds to the tree beyond the green, the shape, the smell. Strip away every quality and tell me what is left.'},
+        {t:'I can’t get outside my perceptions to check.', s:{skep:2, emp:1},
+         r:'Agreed — and notice what that means. You have never once met a thing unperceived. Everything you call “the world” arrives already inside a mind.'}
+      ]
+    },
+    {
+      q: 'Can you be certain that you have a body?',
+      voice: 'Descartes',
+      opts: [
+        {t:'Yes — I can see it and touch it.', s:{real:1, emp:2},
+         r:'You have dreamed of having a body and been wrong. How will you tell the waking case from the dream, using only what the senses report?'},
+        {t:'No — I can doubt everything except that I am thinking.', s:{rat:2},
+         r:'Good. Now: is that “I” that cannot be doubted extended in space? Does it have parts? If not, you have found a thinking thing that is not a body — and you owe me an account of how the two are joined.'},
+        {t:'Certainty isn’t the standard I use. I act on what works.', s:{emp:2, prag:1},
+         r:'Then you have traded certainty for usefulness. That is a real answer — but notice it is an answer about knowledge, not about what exists.'}
+      ]
+    },
+    {
+      q: 'Where is the “self” that persists through your life?',
+      voice: 'Hume',
+      opts: [
+        {t:'In memory and consciousness — a continuity.', s:{cont:2},
+         r:'Then show me the impression from which this “self” is copied. I look inward and find a perception of cold, then of light, then of anger — never a perceiver standing behind them.'},
+        {t:'In the body and the brain.', s:{real:2, cont:1},
+         r:'You have pointed at a thing and called it a person. But the matter of the body turns over completely within years. Which part is the one that stays?'},
+        {t:'Nowhere — it’s a bundle of perceptions with no owner.', s:{bundle:2},
+         r:'We agree. And yet you still say “I” a hundred times a day. The word is useful; the thing it names may not be there.'}
+      ]
+    },
+    {
+      q: 'Is the future already settled?',
+      voice: 'Kant',
+      opts: [
+        {t:'Yes — past, present and future are equally real.', s:{eternal:2, rat:1},
+         r:'Then your sense of “now” is a fact about you rather than about the world. Ask yourself what it would even look like for a moment to be present, if all moments exist alike.'},
+        {t:'No — only the present is real, and it is open.', s:{present:2},
+         r:'Then tell me how long the present lasts. A second? A millisecond? Whatever you name has parts, and each part is either past or future. What is left?'},
+        {t:'The question assumes a “now” that physics doesn’t need.', s:{quiet:2, rat:1},
+         r:'Good — you have moved from the world to our way of describing it. That is where the argument actually lives. It is also exactly why Hume could not find causation in experience.'}
+      ]
+    },
+    {
+      q: 'Two billiard balls collide. What actually happened?',
+      voice: 'Hume',
+      opts: [
+        {t:'A real causal power passed from one to the other.', s:{real:2, rat:1},
+         r:'Then point to the power. You see one ball move, then another move. Where in that sequence is the making?'},
+        {t:'Nothing but regular succession. We project the necessity.', s:{emp:2, bundle:1},
+         r:'Exactly. Custom, not insight, makes us expect the second event. And yet you could not live a single day without that expectation — which is itself worth noticing.'},
+        {t:'The question is about our categories, not about the world.', s:{quiet:1, rat:2},
+         r:'Yes — causation may be a rule we must apply for experience to be possible at all. But then it is not a fact we discovered; it is a condition we brought.'}
+      ]
+    }
+  ];
+
+  let step = 0;
+  const S = {};
+
+  function scoreObj(o){
+    Object.keys(o).forEach(k=>{ S[k] = (S[k]||0) + o[k]; });
+  }
+
+  function renderQuestion(){
+    const Q = QUESTIONS[step];
+    root.innerHTML =
+      '<div class="interrog-top mono">' +
+        '<span>Step ' + (step+1) + ' / ' + QUESTIONS.length + '</span>' +
+        '<span>Voice · ' + Q.voice + '</span>' +
+      '</div>' +
+      '<h3 class="iq">' + Q.q + '</h3>' +
+      '<div class="opts" id="opts"></div>' +
+      '<div id="replySlot"></div>';
+
+    const optsEl = $('#opts', root);
+    Q.opts.forEach((o, i)=>{
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'opt';
+      b.textContent = o.t;
+      b.addEventListener('click', ()=> answer(i));
+      optsEl.appendChild(b);
+    });
+  }
+
+  function answer(i){
+    const Q = QUESTIONS[step];
+    const o = Q.opts[i];
+    scoreObj(o.s);
+
+    const btns = $$('.opt', root);
+    btns.forEach((b,k)=>{
+      b.disabled = true;
+      b.style.opacity = k === i ? '1' : '.3';
+      b.style.borderColor = k === i ? 'var(--teal)' : 'var(--line)';
+    });
+
+    const slot = $('#replySlot', root);
+    slot.innerHTML =
+      '<div class="reply">' +
+        '<p class="who">' + Q.voice + ' replies</p>' +
+        '<p>' + o.r + '</p>' +
+      '</div>' +
+      '<div class="next"><button class="tbtn" id="nextBtn" type="button">' +
+        (step === QUESTIONS.length - 1 ? 'Read the fingerprint' : 'Next question') +
+      '</button></div>';
+
+    const nb = $('#nextBtn', root);
+    nb.addEventListener('click', ()=>{
+      step++;
+      if(step >= QUESTIONS.length) renderResult();
+      else renderQuestion();
+    });
+    nb.focus();
+  }
+
+  function fingerprint(){
+    const real = (S.real||0), ideal = (S.ideal||0);
+    const skep = (S.skep||0) + (S.quiet||0);
+    const rat = (S.rat||0), emp = (S.emp||0);
+    const cont = (S.cont||0), bundle = (S.bundle||0);
+    const eternal = (S.eternal||0), present = (S.present||0);
+
+    let worldMod;
+    if(ideal > real + 1 && ideal > skep) worldMod = 'idealist';
+    else if(real > ideal + 1 && real > skep) worldMod = 'realist';
+    else worldMod = 'Kantian';
+
+    let know;
+    if(rat > emp + 1) know = 'rationalist';
+    else if(emp > rat + 1) know = 'empiricist';
+    else know = 'mixed';
+
+    let name;
+    if(worldMod === 'Kantian' && know === 'mixed') name = 'Kantian quietist';
+    else if(worldMod === 'Kantian') name = 'Kantian-leaning ' + know;
+    else if(know === 'mixed') name = worldMod + ' who refuses the rationalist–empiricist split';
+    else name = worldMod + ' ' + know;
+
+    let selfLine;
+    if(bundle > cont + 1) selfLine = 'About the self you are a bundle theorist: you treat it as a process rather than a thing that owns the process.';
+    else if(cont > bundle + 1) selfLine = 'About the self you are a continuity theorist: you treat it as a pattern that persists rather than a substance that underlies.';
+    else selfLine = 'About the self you are genuinely undecided, which is roughly where the evidence leaves everyone.';
+
+    let timeLine;
+    if(eternal > present + 1) timeLine = 'You take all moments to be equally real, which makes “now” a fact about you rather than about the world.';
+    else if(present > eternal + 1) timeLine = 'You take only the present to be real, which means you owe an account of how long it lasts.';
+    else timeLine = 'On time you split the difference, which is harder to defend than either extreme.';
+
+    const sentenceA = worldMod === 'realist'
+      ? 'You hold that the world does not need an observer in order to be — the furniture is there whether or not anyone is looking.'
+      : worldMod === 'idealist'
+        ? 'You hold that minds and their contents are the basic furniture of reality, and that “matter” is a shorthand for regularities in experience.'
+        : 'You sit in the Kantian middle: you do not claim direct access to things in themselves, and you do not reduce them to experience either.';
+
+    const sentenceB = know === 'empiricist'
+      ? 'You trust experience over deduction, which makes you hard to fool and slightly vulnerable to arguments that outrun the evidence.'
+      : know === 'rationalist'
+        ? 'You trust the structure of thought over the raw evidence of the senses, which makes you good at seeing necessities and bad at giving them up.'
+        : 'You refuse to choose between experience and deduction, which is honest but leaves you without a tiebreaker.';
+
+    return {
+      name, sentenceA, sentenceB, selfLine, timeLine,
+      axes: [
+        {label:'Realism', v: real - ideal, max: 6},
+        {label:'Empiricism', v: emp - rat, max: 6},
+        {label:'Bundle self', v: bundle - cont, max: 4},
+        {label:'Eternalism', v: eternal - present, max: 4}
+      ]
+    };
+  }
+
+  function renderResult(){
+    const f = fingerprint();
+    root.innerHTML =
+      '<div class="interrog-top mono"><span>Result</span><span>§ PHILOSOPHICAL FINGERPRINT</span></div>' +
+      '<h3 class="fp-title">You are a <em>' + f.name + '</em>.</h3>' +
+      '<p class="fp-copy">' + f.sentenceA + ' ' + f.sentenceB + '</p>' +
+      '<div class="bars" id="bars"></div>' +
+      '<p class="fp-copy">' + f.selfLine + ' ' + f.timeLine + '</p>' +
+      '<button class="tbtn" id="restart" type="button">Run it again</button>';
+
+    const bars = $('#bars', root);
+    f.axes.forEach(a=>{
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      const pct = 50 + clamp(a.v / a.max, -1, 1) * 50;
+      row.innerHTML =
+        '<span>' + a.label + '</span>' +
+        '<div class="bar"><i style="left:50%"></i></div>';
+      bars.appendChild(row);
+      requestAnimationFrame(()=>{
+        const dot = row.querySelector('i');
+        setTimeout(()=>{ dot.style.left = pct + '%'; }, 30);
+      });
+    });
+
+    $('#restart', root).addEventListener('click', ()=>{
+      step = 0;
+      Object.keys(S).forEach(k=> delete S[k]);
+      renderQuestion();
+    });
+  }
+
+  renderQuestion();
+})();
+
+/* ============================================================
+   COLOPHON — EASTER EGG
+   ============================================================ */
+(function(){
+  const sigil = $('#sigil');
+  const overlay = $('#voidOverlay');
+  if(!sigil || !overlay) return;
+
+  let count = 0;
+  let timer = null;
+
+  sigil.addEventListener('click', ()=>{
+    count++;
+    sigil.classList.remove('shake');
+    void sigil.offsetWidth;
+    sigil.classList.add('shake');
+
+    clearTimeout(timer);
+    timer = setTimeout(()=>{ count = 0; }, 1400);
+
+    if(count >= 3){
+      count = 0;
+      overlay.classList.add('on');
+      document.body.style.overflow = 'hidden';
+    }
+  });
+
+  function close(){
+    overlay.classList.remove('on');
+    document.body.style.overflow = '';
+  }
+
+  overlay.addEventListener('click', close);
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'Escape' && overlay.classList.contains('on')) close();
+  });
+})();
+
+})();
+</script>
+</body>
+</html>
